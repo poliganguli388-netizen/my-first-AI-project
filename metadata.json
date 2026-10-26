@@ -1,0 +1,6 @@
+{
+  "name": "EventCraft AI - Celebration & Event Planner Pro",
+  "description": "Comprehensive event & celebration planning platform featuring budget management, timeline milestones, day-of run sheets, vendor tracking, guest RSVP lists, and AI-powered recommendations.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

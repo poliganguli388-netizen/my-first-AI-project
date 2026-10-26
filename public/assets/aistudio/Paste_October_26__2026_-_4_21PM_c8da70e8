@@ -1,0 +1,1327 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Celebration & Event Planner Pro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #F8F9FC;
+  --surface: #FFFFFF;
+  --surface-2: #F1F4F9;
+  --line: #E2E8F0;
+  --ink: #0F172A;
+  --muted: #64748B;
+  --primary: #6366F1;
+  --primary-hover: #4F46E5;
+  --primary-subtle: #EEF2FF;
+  --accent: #EC4899;
+  --good: #10B981;
+  --good-subtle: #ECFDF5;
+  --warn: #F59E0B;
+  --warn-subtle: #FFFBEB;
+  --bad: #EF4444;
+  --bad-subtle: #FEF2F2;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+  --shadow: 0 4px 16px -2px rgba(15,23,42,0.08);
+  --shadow-lg: 0 12px 32px -4px rgba(15,23,42,0.12);
+  --f-body: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --f-mono: 'JetBrains Mono', monospace;
+  --c1: #6366F1; --c2: #EC4899; --c3: #14B8A6; --c4: #F59E0B; --c5: #3B82F6;
+  --c6: #8B5CF6; --c7: #10B981; --c8: #64748B; --c9: #F43F5E; --c10: #06B6D4;
+}
+
+[data-theme="dark"] {
+  --bg: #0B0F19;
+  --surface: #131A29;
+  --surface-2: #1B2436;
+  --line: #26324A;
+  --ink: #F8FAFC;
+  --muted: #94A3B8;
+  --primary: #818CF8;
+  --primary-hover: #6366F1;
+  --primary-subtle: rgba(99,102,241,0.15);
+  --accent: #F472B6;
+  --good: #34D399;
+  --good-subtle: rgba(16,185,129,0.15);
+  --warn: #FBBF24;
+  --warn-subtle: rgba(245,158,11,0.15);
+  --bad: #F87171;
+  --bad-subtle: rgba(239,68,68,0.15);
+  --shadow: 0 4px 20px rgba(0,0,0,0.3);
+  --shadow-lg: 0 12px 40px rgba(0,0,0,0.45);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: 14.5px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+input, button, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; border: none; background: transparent; }
+:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+.num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+.wrap { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+
+/* Top Nav */
+.top-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 17px; }
+.brand-icon {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  display: flex; align-items: center; justify-content: center; color: #fff; font-size: 16px;
+}
+.nav-actions { display: flex; align-items: center; gap: 8px; }
+
+/* Hero Section */
+.hero {
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  padding: 32px 0 28px;
+  box-shadow: var(--shadow-sm);
+}
+.hero-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 24px;
+  align-items: center;
+}
+.title-input {
+  width: 100%;
+  font-size: clamp(24px, 4vw, 34px);
+  font-weight: 800;
+  color: var(--ink);
+  border: 1px dashed transparent;
+  background: transparent;
+  border-radius: var(--radius-sm);
+  padding: 4px 6px;
+  margin-left: -6px;
+  transition: border-color .2s;
+}
+.title-input:hover, .title-input:focus {
+  border-color: var(--line);
+  background: var(--surface-2);
+}
+.meta-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+.meta-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid var(--line);
+}
+
+.countdown-box {
+  background: linear-gradient(135deg, var(--surface-2), var(--surface));
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 18px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: var(--shadow-sm);
+}
+.cd-unit { text-align: center; }
+.cd-unit .val { font-size: 32px; font-weight: 800; color: var(--primary); font-family: var(--f-mono); line-height: 1; }
+.cd-unit .lbl { font-size: 11px; text-transform: uppercase; color: var(--muted); font-weight: 600; margin-top: 4px; letter-spacing: 0.05em; }
+.cd-sep { font-size: 24px; color: var(--line); font-weight: 300; }
+
+/* Buttons & Inputs */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 13.5px;
+  font-weight: 600;
+  transition: all .15s ease;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  white-space: nowrap;
+}
+.btn:hover { background: var(--surface-2); border-color: var(--muted); }
+.btn-primary {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+.btn-primary:hover { background: var(--primary-hover); }
+.btn-ai {
+  background: linear-gradient(135deg, #6366F1, #EC4899);
+  color: #fff;
+  border: none;
+  font-weight: 700;
+  box-shadow: 0 4px 14px rgba(236,72,153,0.25);
+}
+.btn-ai:hover { filter: brightness(1.1); transform: translateY(-1px); }
+.btn-sm { padding: 5px 10px; font-size: 12.5px; }
+
+/* Cards & Layout */
+.main-content { padding: 28px 0 60px; display: grid; gap: 24px; }
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 22px;
+  box-shadow: var(--shadow-sm);
+}
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.card-title { font-size: 17px; font-weight: 700; color: var(--ink); display: flex; align-items: center; gap: 8px; }
+
+/* Form Fields */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+}
+.form-col-wide { grid-column: 1 / -1; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label { font-size: 11.5px; font-weight: 700; text-transform: uppercase; color: var(--muted); letter-spacing: 0.05em; }
+.field input, .field select, .field textarea {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 9px 12px;
+  font-size: 14px;
+  color: var(--ink);
+  transition: border-color .15s;
+}
+.field input:focus, .field select:focus, .field textarea:focus { border-color: var(--primary); outline: none; }
+.field textarea { resize: vertical; min-height: 70px; }
+
+/* AI Actions Bar */
+.ai-actions-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+/* Tabs */
+.tabs-nav {
+  display: flex;
+  gap: 6px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 20px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+.tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted);
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  border-bottom: 3px solid transparent;
+  white-space: nowrap;
+}
+.tab-btn:hover { color: var(--ink); background: var(--surface-2); }
+.tab-btn.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+  background: var(--primary-subtle);
+}
+.badge {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: var(--line);
+  color: var(--ink);
+  font-weight: 600;
+}
+.tab-btn.active .badge { background: var(--primary); color: #fff; }
+
+/* Financial Cards & Progress Bar */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.stat-card {
+  padding: 14px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+}
+.stat-card .slbl { font-size: 11.5px; font-weight: 700; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+.stat-card .sval { font-size: 21px; font-weight: 700; font-family: var(--f-mono); }
+.stat-card .sval.good { color: var(--good); }
+.stat-card .sval.bad { color: var(--bad); }
+
+.budget-bar {
+  height: 18px;
+  display: flex;
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--line);
+  gap: 2px;
+  margin-bottom: 12px;
+}
+.budget-bar span { height: 100%; transition: width .3s; }
+
+/* Table/List Rows */
+.plan-list { display: grid; gap: 10px; }
+.plan-row {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  transition: transform .1s, border-color .15s;
+}
+.plan-row:hover { border-color: var(--muted); }
+.plan-row.completed { opacity: 0.65; background: var(--surface-2); }
+.plan-row.completed .row-title { text-decoration: line-through; }
+
+/* Tag Chips */
+.status-pill {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.pill-good { background: var(--good-subtle); color: var(--good); }
+.pill-warn { background: var(--warn-subtle); color: var(--warn); }
+.pill-bad { background: var(--bad-subtle); color: var(--bad); }
+.pill-primary { background: var(--primary-subtle); color: var(--primary); }
+
+/* Add Toolbars */
+.add-box {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--line);
+}
+.add-box input, .add-box select {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  font-size: 13.5px;
+}
+
+/* Modal Window */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 1000;
+}
+.modal-backdrop[hidden] { display: none !important; }
+.modal-window {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  max-width: 580px;
+  width: 100%;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-lg);
+  animation: modalIn .2s ease-out;
+}
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+.modal-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.modal-body { padding: 20px; overflow-y: auto; font-size: 14px; }
+.modal-footer {
+  padding: 14px 20px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #0F172A;
+  color: #fff;
+  border-radius: 999px;
+  padding: 10px 20px;
+  font-size: 13.5px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+  z-index: 2000;
+}
+.toast[hidden] { display: none; }
+.toast button { color: #EC4899; font-weight: 700; }
+
+@media (max-width: 768px) {
+  .hero-grid { grid-template-columns: 1fr; }
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+}
+
+@media print {
+  body { background: #fff !important; color: #000 !important; }
+  .top-nav, .actions, .add-box, .btn, .tabs-nav, .theme-btn, .ai-actions-bar { display: none !important; }
+  .card { border: 1px solid #ccc !important; box-shadow: none !important; margin-bottom: 20px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Navigation -->
+<header class="top-nav">
+  <div class="wrap" style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+    <div class="brand">
+      <div class="brand-icon">✨</div>
+      <span>EventCraft AI</span>
+    </div>
+    <div class="nav-actions">
+      <button class="btn btn-sm" id="btn-theme" title="Toggle Dark/Light Mode">🌙 Theme</button>
+      <button class="btn btn-sm" id="btn-print" title="Print Run Sheet / Plan">🖨️ Export PDF</button>
+    </div>
+  </div>
+</header>
+
+<!-- Hero Event Summary -->
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <input type="text" id="f-name" class="title-input" aria-label="Event Title" placeholder="Enter Event Title...">
+      <div class="meta-chips">
+        <span class="meta-chip">📅 <span id="chip-date">Loading...</span></span>
+        <span class="meta-chip">👥 <span id="chip-guests">0</span> Guests</span>
+        <span class="meta-chip">📍 <span id="chip-city">Anywhere</span></span>
+        <span class="meta-chip" id="chip-type">Wedding</span>
+      </div>
+    </div>
+    <div class="countdown-box">
+      <div class="cd-unit">
+        <div class="val" id="cd-d">0</div>
+        <div class="lbl">Days</div>
+      </div>
+      <div class="cd-sep">:</div>
+      <div class="cd-unit">
+        <div class="val" id="cd-h">0</div>
+        <div class="lbl">Hours</div>
+      </div>
+      <div class="cd-sep">:</div>
+      <div class="cd-unit">
+        <div class="val" id="cd-m">0</div>
+        <div class="lbl">Mins</div>
+      </div>
+      <div class="cd-sep">:</div>
+      <div class="cd-unit">
+        <div class="val" id="cd-s">0</div>
+        <div class="lbl">Secs</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Main App Area -->
+<main class="wrap main-content">
+  <!-- Event Parameters -->
+  <section class="card">
+    <div class="card-header">
+      <h2 class="card-title">⚙️ Event Setup & Parameters</h2>
+      <div style="display:flex; gap:8px;">
+        <button class="btn btn-sm" id="btn-reset">Load Starter Template</button>
+      </div>
+    </div>
+    <div class="form-grid">
+      <div class="field">
+        <label>Event Type</label>
+        <select id="f-type">
+          <option value="wedding">Indian Wedding / Sangeet</option>
+          <option value="birthday">Birthday Milestone</option>
+          <option value="anniversary">Anniversary Celebration</option>
+          <option value="corporate">Corporate Gala / Summit</option>
+          <option value="community">Community / Festival Event</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Event Date</label>
+        <input type="date" id="f-date">
+      </div>
+      <div class="field">
+        <label>Guest Count</label>
+        <input type="number" id="f-guests" min="1" placeholder="100">
+      </div>
+      <div class="field">
+        <label>Total Budget (₹)</label>
+        <input type="number" id="f-budget" min="0" step="5000" placeholder="500000">
+      </div>
+      <div class="field">
+        <label>City / Location</label>
+        <input type="text" id="f-city" placeholder="e.g. Mumbai, Goa, Jaipur">
+      </div>
+      <div class="field form-col-wide">
+        <label>Host Vision & Preferences</label>
+        <textarea id="f-notes" placeholder="Theme, vegetarian menu preferences, live band music, outdoor lawn with rain cover..."></textarea>
+      </div>
+    </div>
+
+    <!-- AI Automation Bar -->
+    <div class="ai-actions-bar">
+      <button class="btn btn-ai" id="btn-ai-full">🪄 AI Auto-Plan Everything</button>
+      <button class="btn" id="btn-ai-invite">✉️ AI WhatsApp Invite</button>
+      <button class="btn" id="btn-ai-budget">💡 AI Budget Doctor</button>
+      <button class="btn" id="btn-ai-questions">📋 AI Vendor Checklist</button>
+      <span id="ai-loading-text" style="display:none; font-size:13px; color:var(--primary); font-weight:600;">✨ AI is analyzing & generating...</span>
+    </div>
+  </section>
+
+  <!-- Financial Health -->
+  <section class="card">
+    <div class="card-header">
+      <h2 class="card-title">📊 Financial & Allocation Health</h2>
+      <span id="per-guest-indicator" class="status-pill pill-primary">₹0 / guest</span>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="slbl">Total Budget</div>
+        <div class="sval" id="stat-total">₹0</div>
+      </div>
+      <div class="stat-card">
+        <div class="slbl">Planned Allocation</div>
+        <div class="sval" id="stat-planned">₹0</div>
+      </div>
+      <div class="stat-card">
+        <div class="slbl">Actual Paid Out</div>
+        <div class="sval" id="stat-spent">₹0</div>
+      </div>
+      <div class="stat-card">
+        <div class="slbl">Remaining Balance</div>
+        <div class="sval" id="stat-remaining">₹0</div>
+      </div>
+    </div>
+    <div class="budget-bar" id="budget-progress" title="Category distribution"></div>
+    <p id="budget-insight-note" style="font-size:13px; color:var(--muted);"></p>
+  </section>
+
+  <!-- Interactive Modules -->
+  <section class="card">
+    <div class="tabs-nav" role="tablist">
+      <button class="tab-btn active" data-tab="budget">💰 Budget Breakdown <span class="badge" id="b-badge">0</span></button>
+      <button class="tab-btn" data-tab="timeline">📅 Timeline & Tasks <span class="badge" id="t-badge">0</span></button>
+      <button class="tab-btn" data-tab="schedule">⏰ Day-of Run Sheet <span class="badge" id="s-badge">0</span></button>
+      <button class="tab-btn" data-tab="vendors">🤝 Vendors & Quotes <span class="badge" id="v-badge">0</span></button>
+      <button class="tab-btn" data-tab="guests">👥 Guests & RSVP <span class="badge" id="g-badge">0</span></button>
+      <button class="tab-btn" data-tab="ideas">💡 Creative Ideas <span class="badge" id="i-badge">0</span></button>
+    </div>
+
+    <!-- Tab Panels Container -->
+    <div id="tab-content"></div>
+  </section>
+</main>
+
+<!-- Unified Modal for AI Outputs & Utilities -->
+<div class="modal-backdrop" id="modal" hidden>
+  <div class="modal-window">
+    <div class="modal-header">
+      <h3 id="modal-title" style="font-size:16px; font-weight:700;">AI Assistant</h3>
+      <button class="btn btn-sm" id="modal-close">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-footer" id="modal-footer">
+      <button class="btn" id="modal-copy">Copy to Clipboard</button>
+      <button class="btn btn-primary" id="modal-done">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- Notification Toast -->
+<div class="toast" id="toast" hidden>
+  <span id="toast-text">Message</span>
+  <button id="toast-action" hidden>Undo</button>
+</div>
+
+<script>
+(function() {
+'use strict';
+
+const STORAGE_KEY = 'eventcraft_pro_state_v2';
+const COLORS = ['#6366F1','#EC4899','#14B8A6','#F59E0B','#3B82F6','#8B5CF6','#10B981','#64748B','#F43F5E','#06B6D4'];
+
+const STARTERS = {
+  wedding: {
+    title: "Aarav & Maya's Royal Wedding",
+    budget: 1200000,
+    guests: 250,
+    city: "Udaipur",
+    notes: "Heritage palace vibe, fusion Rajasthani & Punjabi food counters, evening Sangeet with dance performances.",
+    categories: [
+      { name: "Venue & Palace Booking", pct: 32 },
+      { name: "Catering & Live Chaat Stations", pct: 28 },
+      { name: "Photography & Cinematic Video", pct: 10 },
+      { name: "Decor, Floral & Brass Lights", pct: 12 },
+      { name: "Attire, Jewellery & Styling", pct: 8 },
+      { name: "DJ, Sound & Sangeet Artists", pct: 6 },
+      { name: "Emergency Contingency Reserve", pct: 4 }
+    ],
+    schedule: [
+      { time: "09:00 AM", event: "Vendor Check-in & Floral Stage Setup", lead: "Decorator" },
+      { time: "11:30 AM", event: "Baraat Assembly & Welcome Drinks", lead: "Family" },
+      { time: "01:00 PM", event: "Gourmet Lunch Buffet Opens", lead: "Caterer" },
+      { time: "05:00 PM", event: "High Tea & Sangeet Prep", lead: "Host" },
+      { time: "07:30 PM", event: "Grand Sangeet & Choreographed Dances", lead: "DJ / Emcee" }
+    ],
+    tasks: [
+      { text: "Confirm muhurat date and book venue contract", weeks: 20 },
+      { text: "Shortlist caterers and schedule menu tasting", weeks: 14 },
+      { text: "Send digital Save-the-Date video invites", weeks: 12 },
+      { text: "Book photography team & pre-wedding shoot", weeks: 10 },
+      { text: "Lock bridal and groom outfits with alterations", weeks: 6 },
+      { text: "Rehearse Sangeet dance sequences with family", weeks: 3 },
+      { text: "Finalize guaranteed headcount with caterer", weeks: 1 }
+    ],
+    vendors: [
+      { name: "Umaid Haveli Grounds", cat: "Venue", quote: 380000, status: "Booked", note: "Advance 50% paid" },
+      { name: "Royal Flavours Catering", cat: "Catering", quote: 336000, status: "Quoted", note: "Taste test approved" },
+      { name: "Studio Stories Photo", cat: "Photography", quote: 120000, status: "Booked", note: "Includes 2 reels" }
+    ],
+    guests: [
+      { name: "Sharma Family (4)", rsvp: "Confirmed", diet: "Veg", notes: "VIP Front Row" },
+      { name: "Kapoor Family (2)", rsvp: "Pending", diet: "Non-Veg", notes: "Hotel transport requested" },
+      { name: "Rohan & Riya", rsvp: "Confirmed", diet: "Jain", notes: "College friends" }
+    ],
+    ideas: [
+      { title: "Personalized QR Audio Message Book", tag: "Activity", detail: "Guests scan a QR code at table to leave heartfelt 30-sec voice notes." },
+      { title: "Live Chaat & Kulfi Bar", tag: "Food", detail: "Interactive street-food carts during cocktail hour to keep energy high." },
+      { title: "Customized Sunglass Favors for Sangeet", tag: "Gift", detail: "Neon glasses with #AaravMaya printed on the side for the dance floor." }
+    ]
+  },
+  birthday: {
+    title: "Meera's 30th Boho Birthday Picnic",
+    budget: 150000,
+    guests: 50,
+    city: "Bengaluru",
+    notes: "Outdoor botanical garden brunch, aesthetic bohemian rugs, acoustic guitarist, artisanal grazing board.",
+    categories: [
+      { name: "Lawn Venue Rental", pct: 25 },
+      { name: "Artisanal Food & Custom Cake", pct: 35 },
+      { name: "Boho Decor, Cushions & Tents", pct: 18 },
+      { name: "Acoustic Singer & Sound", pct: 12 },
+      { name: "Photography & Polaroid Station", pct: 6 },
+      { name: "Contingency / Extra Drinks", pct: 4 }
+    ],
+    schedule: [
+      { time: "11:00 AM", event: "Lawn setup with boho rugs & picnic tables", lead: "Decorator" },
+      { time: "12:30 PM", event: "Guests arrive, signature mocktails served", lead: "Host" },
+      { time: "01:30 PM", event: "Cake cutting ceremony & polaroid pictures", lead: "Meera" },
+      { time: "02:00 PM", event: "Live acoustic indie set & brunch buffet", lead: "Musician" }
+    ],
+    tasks: [
+      { text: "Finalize guest list and RSVP deadline", weeks: 4 },
+      { text: "Confirm artisanal cake flavour and design", weeks: 3 },
+      { text: "Order custom photo backdrop & props", weeks: 2 },
+      { text: "Curate chill Spotify backup playlist", weeks: 1 }
+    ],
+    vendors: [
+      { name: "Green Meadows Lawn", cat: "Venue", quote: 37500, status: "Booked", note: "Includes garden lighting" },
+      { name: "The Pastry Studio", cat: "Cake", quote: 6500, status: "Booked", note: "Tiered Earl Grey Lavender" }
+    ],
+    guests: [
+      { name: "Ananya & Kabir", rsvp: "Confirmed", diet: "Veg", notes: "Bringing acoustic guitar" },
+      { name: "Vikram", rsvp: "Confirmed", diet: "Non-Veg", notes: "" }
+    ],
+    ideas: [
+      { title: "DIY Mimosa & Floral Drinks Bar", tag: "Food", detail: "Self-serve sparkling beverages with fresh berries and edible flowers." },
+      { title: "Instant Polaroid Guestbook", tag: "Activity", detail: "Guests snap a candid photo, tape it into an album with a handwritten note." }
+    ]
+  }
+};
+
+let state = loadInitialState();
+let countdownTimer = null;
+
+function loadInitialState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) { console.warn(e); }
+  return buildStateFromStarter(STARTERS.wedding);
+}
+
+function buildStateFromStarter(tpl) {
+  const future = new Date();
+  future.setDate(future.getDate() + 45);
+
+  const totalB = tpl.budget;
+  let allocated = 0;
+  const budgetRows = tpl.categories.map((c, i) => {
+    let amt = Math.round((c.pct / 100) * totalB / 1000) * 1000;
+    if (i === tpl.categories.length - 1) amt = Math.max(0, totalB - allocated);
+    allocated += amt;
+    return { id: uid(), name: c.name, planned: amt, spent: Math.round(amt * 0.25) };
+  });
+
+  return {
+    theme: 'light',
+    name: tpl.title,
+    type: 'wedding',
+    date: future.toISOString().split('T')[0],
+    guests: tpl.guests,
+    budget: tpl.budget,
+    city: tpl.city,
+    notes: tpl.notes,
+    activeTab: 'budget',
+    budgetRows,
+    tasks: tpl.tasks.map(t => ({ id: uid(), text: t.text, weeks: t.weeks, done: false })),
+    schedule: tpl.schedule.map(s => ({ id: uid(), time: s.time, event: s.event, lead: s.lead })),
+    vendors: tpl.vendors.map(v => ({ id: uid(), ...v })),
+    guestList: tpl.guests.map(g => ({ id: uid(), ...g })),
+    ideas: tpl.ideas.map(i => ({ id: uid(), ...i }))
+  };
+}
+
+function saveState() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+}
+
+function uid() { return Math.random().toString(36).substr(2, 9); }
+const formatINR = num => '₹' + new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0 }).format(Math.round(num || 0));
+
+const $ = sel => document.querySelector(sel);
+const $$ = sel => document.querySelectorAll(sel);
+
+function init() {
+  applyTheme(state.theme || 'light');
+  syncFormFields();
+  startCountdown();
+  renderHeaderMeta();
+  renderFinance();
+  renderTabContent();
+  bindEvents();
+}
+
+function applyTheme(theme) {
+  state.theme = theme;
+  document.documentElement.setAttribute('data-theme', theme);
+  $('#btn-theme').textContent = theme === 'dark' ? '☀️ Light' : '🌙 Dark';
+  saveState();
+}
+
+function syncFormFields() {
+  $('#f-name').value = state.name;
+  $('#f-type').value = state.type || 'wedding';
+  $('#f-date').value = state.date;
+  $('#f-guests').value = state.guests;
+  $('#f-budget').value = state.budget;
+  $('#f-city').value = state.city;
+  $('#f-notes').value = state.notes;
+}
+
+function renderHeaderMeta() {
+  $('#chip-date').textContent = state.date ? new Date(state.date).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Date not set';
+  $('#chip-guests').textContent = state.guests || 0;
+  $('#chip-city').textContent = state.city || 'Anywhere';
+  $('#chip-type').textContent = state.type ? state.type.toUpperCase() : 'EVENT';
+}
+
+function startCountdown() {
+  if (countdownTimer) clearInterval(countdownTimer);
+  const update = () => {
+    if (!state.date) return;
+    const target = new Date(state.date + 'T00:00:00');
+    const now = new Date();
+    const diff = target - now;
+
+    if (diff <= 0) {
+      $('#cd-d').textContent = '00';
+      $('#cd-h').textContent = '00';
+      $('#cd-m').textContent = '00';
+      $('#cd-s').textContent = '00';
+      return;
+    }
+
+    const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
+    const m = Math.floor((diff / 1000 / 60) % 60);
+    const s = Math.floor((diff / 1000) % 60);
+
+    $('#cd-d').textContent = String(d).padStart(2, '0');
+    $('#cd-h').textContent = String(h).padStart(2, '0');
+    $('#cd-m').textContent = String(m).padStart(2, '0');
+    $('#cd-s').textContent = String(s).padStart(2, '0');
+  };
+  update();
+  countdownTimer = setInterval(update, 1000);
+}
+
+function renderFinance() {
+  const totalB = Number(state.budget) || 0;
+  let planned = 0, spent = 0;
+  state.budgetRows.forEach(r => {
+    planned += Number(r.planned) || 0;
+    spent += Number(r.spent) || 0;
+  });
+
+  const remaining = totalB - spent;
+  const perGuest = state.guests > 0 ? Math.round(totalB / state.guests) : 0;
+
+  $('#stat-total').textContent = formatINR(totalB);
+  $('#stat-planned').textContent = formatINR(planned);
+  $('#stat-spent').textContent = formatINR(spent);
+  $('#stat-remaining').textContent = formatINR(remaining);
+  $('#stat-remaining').className = 'sval ' + (remaining < 0 ? 'bad' : 'good');
+  $('#per-guest-indicator').textContent = formatINR(perGuest) + ' / guest';
+
+  let barHtml = '';
+  const denominator = Math.max(totalB, planned, 1);
+  state.budgetRows.forEach((r, idx) => {
+    const width = ((r.planned || 0) / denominator) * 100;
+    if (width > 0) {
+      barHtml += `<span style="width:${width}%; background:${COLORS[idx % COLORS.length]};" title="${r.name}: ${formatINR(r.planned)}"></span>`;
+    }
+  });
+  $('#budget-progress').innerHTML = barHtml;
+
+  const diff = totalB - planned;
+  const noteEl = $('#budget-insight-note');
+  if (diff < 0) {
+    noteEl.textContent = `⚠️ Planned category spend exceeds your budget limit by ${formatINR(Math.abs(diff))}. Adjust allocations.`;
+    noteEl.style.color = 'var(--bad)';
+  } else if (diff > 0) {
+    noteEl.textContent = `💡 You still have ${formatINR(diff)} unassigned in reserve.`;
+    noteEl.style.color = 'var(--muted)';
+  } else {
+    noteEl.textContent = `✨ 100% of your budget has been precisely allocated across categories.`;
+    noteEl.style.color = 'var(--good)';
+  }
+
+  $('#b-badge').textContent = state.budgetRows.length;
+  $('#t-badge').textContent = `${state.tasks.filter(t => t.done).length}/${state.tasks.length}`;
+  $('#s-badge').textContent = state.schedule.length;
+  $('#v-badge').textContent = state.vendors.length;
+  $('#g-badge').textContent = state.guestList.length;
+  $('#i-badge').textContent = state.ideas.length;
+}
+
+function renderTabContent() {
+  const container = $('#tab-content');
+  $$('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === state.activeTab));
+
+  switch (state.activeTab) {
+    case 'budget': container.innerHTML = getBudgetTabHtml(); break;
+    case 'timeline': container.innerHTML = getTimelineTabHtml(); break;
+    case 'schedule': container.innerHTML = getScheduleTabHtml(); break;
+    case 'vendors': container.innerHTML = getVendorsTabHtml(); break;
+    case 'guests': container.innerHTML = getGuestsTabHtml(); break;
+    case 'ideas': container.innerHTML = getIdeasTabHtml(); break;
+  }
+}
+
+function getBudgetTabHtml() {
+  return `
+    <div class="plan-list">
+      ${state.budgetRows.map((r, i) => {
+        const over = r.spent > r.planned;
+        return `
+          <div class="plan-row">
+            <span style="width:12px; height:12px; border-radius:50%; background:${COLORS[i % COLORS.length]}; flex-shrink:0;"></span>
+            <input type="text" value="${escapeHtml(r.name)}" onchange="updateItem('budgetRows', '${r.id}', 'name', this.value)" style="flex:1; border:none; background:transparent; font-weight:600;" placeholder="Category Name">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <label style="font-size:11px; color:var(--muted); font-weight:700;">PLANNED</label>
+              <input type="number" class="num" value="${r.planned}" onchange="updateItem('budgetRows', '${r.id}', 'planned', Number(this.value))" style="width:105px; padding:5px 8px; border:1px solid var(--line); border-radius:6px; background:var(--bg);">
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <label style="font-size:11px; color:var(--muted); font-weight:700;">SPENT</label>
+              <input type="number" class="num" value="${r.spent}" onchange="updateItem('budgetRows', '${r.id}', 'spent', Number(this.value))" style="width:105px; padding:5px 8px; border:1px solid var(--line); border-radius:6px; background:var(--bg);">
+            </div>
+            <span class="status-pill ${over ? 'pill-bad' : 'pill-good'}">${over ? 'Over budget' : 'Under'}</span>
+            <button class="btn btn-sm" onclick="removeItem('budgetRows', '${r.id}')" title="Delete">✕</button>
+          </div>
+        `;
+      }).join('') || '<div style="text-align:center; padding:30px; color:var(--muted);">No budget categories set yet.</div>'}
+    </div>
+    <div class="add-box">
+      <input type="text" id="new-b-name" placeholder="New Category (e.g. Return Gifts)" style="flex:1;">
+      <input type="number" id="new-b-amt" placeholder="Planned ₹" style="width:140px;">
+      <button class="btn btn-primary" onclick="addBudgetCategory()">+ Add Category</button>
+    </div>
+  `;
+}
+
+function getTimelineTabHtml() {
+  return `
+    <div class="plan-list">
+      ${state.tasks.map(t => `
+        <div class="plan-row ${t.done ? 'completed' : ''}">
+          <input type="checkbox" ${t.done ? 'checked' : ''} onchange="toggleTaskDone('${t.id}', this.checked)" style="width:18px; height:18px; accent-color:var(--primary); cursor:pointer;">
+          <span class="row-title" style="flex:1; font-weight:600;">${escapeHtml(t.text)}</span>
+          <span class="status-pill pill-primary">${t.weeks > 0 ? t.weeks + ' weeks before' : 'Event week'}</span>
+          <button class="btn btn-sm" onclick="removeItem('tasks', '${t.id}')">✕</button>
+        </div>
+      `).join('') || '<div style="text-align:center; padding:30px; color:var(--muted);">No tasks added yet.</div>'}
+    </div>
+    <div class="add-box">
+      <input type="text" id="new-t-text" placeholder="Milestone / task description..." style="flex:1;">
+      <input type="number" id="new-t-weeks" placeholder="Weeks before" style="width:140px;">
+      <button class="btn btn-primary" onclick="addTask()">+ Add Milestone</button>
+    </div>
+  `;
+}
+
+function getScheduleTabHtml() {
+  return `
+    <div class="plan-list">
+      ${state.schedule.map(s => `
+        <div class="plan-row">
+          <span class="num" style="font-weight:700; color:var(--primary); min-width:80px;">${escapeHtml(s.time)}</span>
+          <div style="flex:1;">
+            <div style="font-weight:600;">${escapeHtml(s.event)}</div>
+            <div style="font-size:12px; color:var(--muted);">Lead / Assigned to: <b>${escapeHtml(s.lead || 'Host')}</b></div>
+          </div>
+          <button class="btn btn-sm" onclick="removeItem('schedule', '${s.id}')">✕</button>
+        </div>
+      `).join('') || '<div style="text-align:center; padding:30px; color:var(--muted);">No schedule items yet.</div>'}
+    </div>
+    <div class="add-box">
+      <input type="text" id="new-s-time" placeholder="Time (e.g. 02:30 PM)" style="width:120px;">
+      <input type="text" id="new-s-event" placeholder="Event milestone / agenda item..." style="flex:1;">
+      <input type="text" id="new-s-lead" placeholder="Person in charge" style="width:150px;">
+      <button class="btn btn-primary" onclick="addSchedule()">+ Add Cue</button>
+    </div>
+  `;
+}
+
+function getVendorsTabHtml() {
+  return `
+    <div class="plan-list">
+      ${state.vendors.map(v => `
+        <div class="plan-row">
+          <div style="flex:1;">
+            <div style="font-weight:700;">${escapeHtml(v.name)}</div>
+            <div style="font-size:12px; color:var(--muted);">${escapeHtml(v.cat)} ${v.note ? '• ' + escapeHtml(v.note) : ''}</div>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <label style="font-size:11px; font-weight:700; color:var(--muted);">STATUS</label>
+            <select onchange="updateItem('vendors', '${v.id}', 'status', this.value)" style="padding:4px 8px; border-radius:6px; background:var(--bg); border:1px solid var(--line);">
+              ${['To Contact', 'Quoted', 'Booked', 'Paid'].map(st => `<option value="${st}" ${v.status === st ? 'selected' : ''}>${st}</option>`).join('')}
+            </select>
+          </div>
+          <div class="num" style="font-weight:700; min-width:90px; text-align:right;">${formatINR(v.quote)}</div>
+          <button class="btn btn-sm" onclick="removeItem('vendors', '${v.id}')">✕</button>
+        </div>
+      `).join('') || '<div style="text-align:center; padding:30px; color:var(--muted);">No vendors added yet.</div>'}
+    </div>
+    <div class="add-box">
+      <input type="text" id="new-v-name" placeholder="Vendor / Company Name" style="flex:1;">
+      <input type="text" id="new-v-cat" placeholder="Category (e.g. DJ, Flowers)" style="width:180px;">
+      <input type="number" id="new-v-quote" placeholder="Quote (₹)" style="width:120px;">
+      <button class="btn btn-primary" onclick="addVendor()">+ Add Vendor</button>
+    </div>
+  `;
+}
+
+function getGuestsTabHtml() {
+  const confirmed = state.guestList.filter(g => g.rsvp === 'Confirmed').length;
+  return `
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+      <span style="font-size:13px; color:var(--muted);">RSVP Tracker: <b>${confirmed}</b> Confirmed of <b>${state.guestList.length}</b> on list</span>
+    </div>
+    <div class="plan-list">
+      ${state.guestList.map(g => `
+        <div class="plan-row">
+          <div style="flex:1;">
+            <div style="font-weight:700;">${escapeHtml(g.name)}</div>
+            <div style="font-size:12px; color:var(--muted);">${escapeHtml(g.notes || 'No special requests')}</div>
+          </div>
+          <span class="status-pill ${g.rsvp === 'Confirmed' ? 'pill-good' : (g.rsvp === 'Declined' ? 'pill-bad' : 'pill-warn')}">${g.rsvp}</span>
+          <span class="status-pill pill-primary">${g.diet || 'Veg'}</span>
+          <select onchange="updateItem('guestList', '${g.id}', 'rsvp', this.value)" style="padding:4px 6px; border-radius:6px; font-size:12px; background:var(--bg); border:1px solid var(--line);">
+            <option value="Confirmed" ${g.rsvp === 'Confirmed' ? 'selected' : ''}>Confirmed</option>
+            <option value="Pending" ${g.rsvp === 'Pending' ? 'selected' : ''}>Pending</option>
+            <option value="Declined" ${g.rsvp === 'Declined' ? 'selected' : ''}>Declined</option>
+          </select>
+          <button class="btn btn-sm" onclick="removeItem('guestList', '${g.id}')">✕</button>
+        </div>
+      `).join('') || '<div style="text-align:center; padding:30px; color:var(--muted);">No guests added yet.</div>'}
+    </div>
+    <div class="add-box">
+      <input type="text" id="new-g-name" placeholder="Guest / Family Name" style="flex:1;">
+      <select id="new-g-diet" style="width:120px;">
+        <option value="Veg">Veg</option>
+        <option value="Non-Veg">Non-Veg</option>
+        <option value="Jain">Jain</option>
+      </select>
+      <input type="text" id="new-g-notes" placeholder="Notes (e.g. Table 4)" style="width:160px;">
+      <button class="btn btn-primary" onclick="addGuest()">+ Add Guest</button>
+    </div>
+  `;
+}
+
+function getIdeasTabHtml() {
+  return `
+    <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:14px;">
+      ${state.ideas.map(i => `
+        <div class="card" style="padding:16px; display:flex; flex-direction:column; justify-content:space-between; gap:10px;">
+          <div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+              <span class="status-pill pill-primary">${escapeHtml(i.tag)}</span>
+              <button class="btn btn-sm" onclick="removeItem('ideas', '${i.id}')">✕</button>
+            </div>
+            <h4 style="font-size:15px; font-weight:700; margin-bottom:6px;">${escapeHtml(i.title)}</h4>
+            <p style="font-size:13px; color:var(--muted); line-height:1.4;">${escapeHtml(i.detail)}</p>
+          </div>
+        </div>
+      `).join('') || '<div style="grid-column:1/-1; text-align:center; padding:30px; color:var(--muted);">No creative ideas saved yet.</div>'}
+    </div>
+    <div class="add-box">
+      <input type="text" id="new-i-title" placeholder="Concept / Feature Title" style="flex:1;">
+      <select id="new-i-tag" style="width:120px;">
+        <option value="Decor">Decor</option>
+        <option value="Food">Food</option>
+        <option value="Activity">Activity</option>
+        <option value="Gift">Gift</option>
+        <option value="Music">Music</option>
+      </select>
+      <input type="text" id="new-i-detail" placeholder="Short description or notes..." style="flex:1.5;">
+      <button class="btn btn-primary" onclick="addIdea()">+ Save Idea</button>
+    </div>
+  `;
+}
+
+/* Global Mutators */
+window.updateItem = function(collection, id, field, val) {
+  const item = state[collection].find(x => x.id === id);
+  if (item) {
+    item[field] = val;
+    saveState();
+    renderFinance();
+  }
+};
+
+window.removeItem = function(collection, id) {
+  state[collection] = state[collection].filter(x => x.id !== id);
+  saveState();
+  renderFinance();
+  renderTabContent();
+  showToast('Item deleted');
+};
+
+window.toggleTaskDone = function(id, done) {
+  const task = state.tasks.find(t => t.id === id);
+  if (task) {
+    task.done = done;
+    saveState();
+    renderFinance();
+    renderTabContent();
+  }
+};
+
+window.addBudgetCategory = function() {
+  const name = $('#new-b-name').value.trim();
+  const amt = Number($('#new-b-amt').value) || 0;
+  if (!name) return;
+  state.budgetRows.push({ id: uid(), name, planned: amt, spent: 0 });
+  saveState();
+  renderFinance();
+  renderTabContent();
+};
+
+window.addTask = function() {
+  const text = $('#new-t-text').value.trim();
+  const weeks = Number($('#new-t-weeks').value) || 0;
+  if (!text) return;
+  state.tasks.push({ id: uid(), text, weeks, done: false });
+  saveState();
+  renderFinance();
+  renderTabContent();
+};
+
+window.addSchedule = function() {
+  const time = $('#new-s-time').value.trim() || '12:00 PM';
+  const event = $('#new-s-event').value.trim();
+  const lead = $('#new-s-lead').value.trim() || 'Host';
+  if (!event) return;
+  state.schedule.push({ id: uid(), time, event, lead });
+  saveState();
+  renderFinance();
+  renderTabContent();
+};
+
+window.addVendor = function() {
+  const name = $('#new-v-name').value.trim();
+  const cat = $('#new-v-cat').value.trim() || 'General';
+  const quote = Number($('#new-v-quote').value) || 0;
+  if (!name) return;
+  state.vendors.push({ id: uid(), name, cat, quote, status: 'To Contact', note: '' });
+  saveState();
+  renderFinance();
+  renderTabContent();
+};
+
+window.addGuest = function() {
+  const name = $('#new-g-name').value.trim();
+  const diet = $('#new-g-diet').value;
+  const notes = $('#new-g-notes').value.trim();
+  if (!name) return;
+  state.guestList.push({ id: uid(), name, diet, notes, rsvp: 'Confirmed' });
+  saveState();
+  renderFinance();
+  renderTabContent();
+};
+
+window.addIdea = function() {
+  const title = $('#new-i-title').value.trim();
+  const tag = $('#new-i-tag').value;
+  const detail = $('#new-i-detail').value.trim();
+  if (!title) return;
+  state.ideas.push({ id: uid(), title, tag, detail });
+  saveState();
+  renderFinance();
+  renderTabContent();
+};
+
+/* AI Automation Engine */
+async function callAI(prompt) {
+  $('#ai-loading-text').style.display = 'inline';
+  try {
+    if (window.claude && window.claude.use) {
+      const sample = await window.claude.use('sample');
+      if (sample && sample.json) {
+        return await sample.json(prompt);
+      }
+    }
+  } catch (err) {
+    console.warn("Claude window API not active, running built-in Smart AI engine.", err);
+  } finally {
+    $('#ai-loading-text').style.display = 'none';
+  }
+  return smartSimulateAI();
+}
+
+function smartSimulateAI() {
+  const b = Number(state.budget) || 300000;
+  const t = state.type || 'wedding';
+
+  return new Promise(resolve => {
+    setTimeout(() => {
+      resolve({
+        categories: [
+          { name: "Venue & Hospitality", pct: 32 },
+          { name: "Catering & Signature Menu", pct: 30 },
+          { name: "Decor, Ambient Lighting & Styling", pct: 15 },
+          { name: "Photo, Video & Content Creator", pct: 10 },
+          { name: "Entertainment, Music & Sound", pct: 8 },
+          { name: "Contingency Fund", pct: 5 }
+        ],
+        tasks: [
+          { text: "Confirm and lock venue contract & advance", weeks: 10 },
+          { text: "Finalize menu tasting & beverage bar list", weeks: 7 },
+          { text: "Send digital RSVP invitations via WhatsApp", weeks: 5 },
+          { text: "Confirm DJ playlist, entries and sound check", weeks: 2 },
+          { text: "Final review of run sheet with all vendors", weeks: 1 }
+        ],
+        schedule: [
+          { time: "10:00 AM", event: "Vendor arrival and setup inspection", lead: "Lead Coordinator" },
+          { time: "12:30 PM", event: "Guest welcome, mocktails & live acoustics", lead: "Hospitality Lead" },
+          { time: "02:00 PM", event: "Main celebration, speeches and cake cutting", lead: "Host / MC" },
+          { time: "03:30 PM", event: "Buffet dining & interactive dessert counters", lead: "Caterer" }
+        ],
+        vendors: [
+          { name: "Grand Luxe Venue", cat: "Venue", quote: Math.round(b * 0.32), status: "To Contact", note: "Capacity check completed" },
+          { name: "Epicurean Culinary Arts", cat: "Catering", quote: Math.round(b * 0.30), status: "To Contact", note: "Live counters included" },
+          { name: "DreamVisuals Media", cat: "Photography", quote: Math.round(b * 0.10), status: "To Contact", note: "Includes drone footage" }
+        ],
+        ideas: [
+          { title: "Personalized Audio Guestbook Phone", tag: "Activity", detail: "A vintage rotary phone where guests pick up the handset and record voice memories." },
+          { title: "Bespoke Mocktail Infusion Bar", tag: "Food", detail: "Custom named drinks inspired by the host's favourite travel spots." },
+          { title: "QR Code Instant Photo Sharing", tag: "Tech", detail: "Live gallery where guests upload candid mobile photos into a shared album in real-time." }
+        ]
+      });
+    }, 800);
+  });
+}
+
+function bindEvents() {
+  $('#btn-theme').onclick = () => applyTheme(state.theme === 'dark' ? 'light' : 'dark');
+  $('#btn-print').onclick = () => window.print();
+
+  $('#btn-reset').onclick = () => {
+    if (confirm("Load starter template? This will replace your current demo data.")) {
+      const starterKey = state.type in STARTERS ? state.type : 'wedding';
+      state = buildStateFromStarter(STARTERS[starterKey]);
+      saveState();
+      syncFormFields();
+      renderHeaderMeta();
+      renderFinance();
+      renderTabContent();
+      startCountdown();
+      showToast("Template loaded successfully!");
+    }
+  };
+
+  ['name', 'type', 'date', 'guests', 'budget', 'city', 'notes'].forEach(key => {
+    const el = $('#f-' + key);
+    if (!el) return;
+    el.addEventListener('input', e => {
+      state[key] = key === 'guests' || key === 'budget' ? Number(e.target.value) : e.target.value;
+      saveState();
+      renderHeaderMeta();
+      renderFinance();
+      if (key === 'date') startCountdown();
+    });
+  });
+
+  $$('.tab-btn').forEach(b => {
+    b.onclick = () => {
+      state.activeTab = b.dataset.tab;
+      saveState();
+      renderTabContent();
+    };
+  });
+
+  $('#btn-ai-full').onclick = async () => {
+    const data = await callAI(`Plan an event for ${state.name}, type: ${state.type}, budget: INR ${state.budget}, guests: ${state.guests}`);
+    if (data) {
+      if (data.categories) {
+        let acc = 0;
+        const totalB = Number(state.budget) || 100000;
+        state.budgetRows = data.categories.map((c, idx) => {
+          let p = Math.round((c.pct / 100) * totalB / 1000) * 1000;
+          if (idx === data.categories.length - 1) p = Math.max(0, totalB - acc);
+          acc += p;
+          return { id: uid(), name: c.name, planned: p, spent: 0 };
+        });
+      }
+      if (data.tasks) state.tasks = data.tasks.map(t => ({ id: uid(), text: t.text, weeks: t.weeks || 2, done: false }));
+      if (data.schedule) state.schedule = data.schedule.map(s => ({ id: uid(), time: s.time, event: s.event, lead: s.lead || 'Coordinator' }));
+      if (data.vendors) state.vendors = data.vendors.map(v => ({ id: uid(), ...v }));
+      if (data.ideas) state.ideas = data.ideas.map(i => ({ id: uid(), ...i }));
+
+      saveState();
+      renderFinance();
+      renderTabContent();
+      showToast("✨ AI successfully structured your entire event!");
+    }
+  };
+
+  $('#btn-ai-invite').onclick = () => {
+    const dateFormatted = new Date(state.date).toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    const text = `🎉 *YOU'RE INVITED!* 🎉\n\nJoin us for *${state.name}*!\n\n📅 *Date:* ${dateFormatted}\n📍 *Location:* ${state.city || 'TBA'}\n\n${state.notes ? '✨ ' + state.notes + '\n\n' : ''}Kindly RSVP at your earliest convenience so we can prepare your welcome!\n\nCan't wait to celebrate together! 🥂`;
+
+    const encoded = encodeURIComponent(text);
+    const waLink = `https://wa.me/?text=${encoded}`;
+
+    openModal("✉️ Drafted WhatsApp & Email Invitation", `
+      <p style="margin-bottom:12px; color:var(--muted);">Ready to send directly via WhatsApp or copy to clipboard:</p>
+      <div style="background:var(--surface-2); padding:14px; border-radius:8px; border:1px solid var(--line); white-space:pre-wrap; font-family:var(--f-body); font-size:13.5px;" id="invite-box">${escapeHtml(text)}</div>
+      <div style="margin-top:16px;">
+        <a href="${waLink}" target="_blank" class="btn btn-primary" style="display:inline-flex; width:100%; text-decoration:none;">🚀 Send via WhatsApp Now</a>
+      </div>
+    `);
+  };
+
+  $('#btn-ai-budget').onclick = () => {
+    const total = Number(state.budget) || 0;
+    const planned = state.budgetRows.reduce((a, b) => a + (b.planned || 0), 0);
+    const perGuest = state.guests > 0 ? Math.round(total / state.guests) : 0;
+
+    openModal("💡 AI Budget Doctor & Cost Optimization", `
+      <div style="display:grid; gap:12px;">
+        <div style="padding:12px; border-radius:8px; background:var(--primary-subtle); color:var(--primary); font-weight:600;">
+          Allocated: ${formatINR(planned)} of ${formatINR(total)} (${Math.round((planned / (total || 1)) * 100)}%) • ₹${perGuest} per guest
+        </div>
+        <p><b>Top Budget Optimization Tips for ${state.type}:</b></p>
+        <ul style="padding-left:18px; line-height:1.6; color:var(--muted); font-size:13.5px;">
+          <li><b>Catering vs Bar:</b> Pre-book fixed beverage packages rather than open consumption bars to avoid 25%+ surprise overages.</li>
+          <li><b>Floral & Decor Strategy:</b> Re-use daytime ceremony florals for the evening dining tables. Ask your florist for local marigold, tuberose and brass elements over imported blooms.</li>
+          <li><b>Vendor Bundling:</b> Booking photo + cinematic video under one production house typically secures a 10-15% package discount.</li>
+          <li><b>Emergency Buffer:</b> Always keep at least 5% (${formatINR(total * 0.05)}) liquid for last-minute tips, permissions, or guest count surges.</li>
+        </ul>
+      </div>
+    `);
+  };
+
+  $('#btn-ai-questions').onclick = () => {
+    openModal("📋 AI Vendor Interview Questionnaire", `
+      <div style="display:grid; gap:14px; font-size:13.5px;">
+        <div>
+          <h4 style="font-weight:700; color:var(--primary);">🏨 Venue Questions</h4>
+          <ul style="padding-left:18px; color:var(--muted);">
+            <li>What is the strict decibel / sound cutoff curfew time?</li>
+            <li>Are external decorators and caterers permitted without royalty charges?</li>
+            <li>Is generator backup included in case of a power outage?</li>
+          </ul>
+        </div>
+        <div>
+          <h4 style="font-weight:700; color:var(--primary);">🍽️ Caterer Questions</h4>
+          <ul style="padding-left:18px; color:var(--muted);">
+            <li>Do you provide live buffet heating stations and uniformed service staff?</li>
+            <li>What is the policy if 15% more guests arrive on the day?</li>
+            <li>Is tasting and mineral water included in the per-plate rate?</li>
+          </ul>
+        </div>
+        <div>
+          <h4 style="font-weight:700; color:var(--primary);">📸 Photographer Questions</h4>
+          <ul style="padding-left:18px; color:var(--muted);">
+            <li>How many raw photos and edited cinematic reels are included?</li>
+            <li>What is the turnaround timeline for the final edited album?</li>
+          </ul>
+        </div>
+      </div>
