@@ -23,6 +23,7 @@ import { GuestsTab } from './components/tabs/GuestsTab';
 import { IdeasTab } from './components/tabs/IdeasTab';
 import { AIModal } from './components/AIModal';
 import { PrintView } from './components/PrintView';
+import { TestSuiteModal } from './components/TestSuiteModal';
 
 const STORAGE_KEY = 'eventcraft_pro_state_v3';
 
@@ -55,6 +56,8 @@ export default function App() {
     type: 'generic',
     data: null
   });
+
+  const [isTestModalOpen, setIsTestModalOpen] = useState<boolean>(false);
 
   // Save to localStorage
   useEffect(() => {
@@ -454,6 +457,7 @@ export default function App() {
         onImportJSON={handleImportJSON}
         activeTab={state.activeTab}
         onSelectTab={(tab) => setState((p) => ({ ...p, activeTab: tab }))}
+        onOpenTestSuite={() => setIsTestModalOpen(true)}
       />
 
       {/* Hero Summary */}
@@ -690,6 +694,12 @@ export default function App() {
         type={modalState.type}
         data={modalState.data}
         onToast={showToast}
+      />
+
+      {/* Test Suite & Quality Inspector Modal */}
+      <TestSuiteModal
+        isOpen={isTestModalOpen}
+        onClose={() => setIsTestModalOpen(false)}
       />
 
       {/* Floating Toast Notification */}

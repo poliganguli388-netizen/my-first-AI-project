@@ -333,7 +333,7 @@ export const COLORS = [
   '#64748B'  // Slate
 ];
 
-export function buildStateFromTemplate(type: EventType, customTitle?: string): EventState {
+export function buildStateFromTemplate(type: EventType, customTitle?: string, theme: 'light' | 'dark' = 'light'): EventState {
   const tpl = STARTERS[type] || STARTERS.wedding;
   const future = new Date();
   future.setDate(future.getDate() + 45);
@@ -354,7 +354,7 @@ export function buildStateFromTemplate(type: EventType, customTitle?: string): E
   });
 
   return {
-    theme: 'light',
+    theme,
     name: customTitle || tpl.title,
     type,
     date: future.toISOString().split('T')[0],

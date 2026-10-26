@@ -338,6 +338,139 @@ Return JSON format:
   });
 });
 
+// AI Marketing Reel Script Generator
+app.post('/api/ai/reel-script', async (req, res) => {
+  const { eventType = 'Luxury Wedding & Celebrations', tone = 'High Energy & Cinematic', durationSeconds = 30 } = req.body;
+  try {
+    if (process.env.GEMINI_API_KEY) {
+      const prompt = `You are a viral TikTok and Instagram Reels producer specializing in SaaS and event tech marketing.
+Generate a captivating, viral ${durationSeconds}-second marketing reel script for "EventCraft AI - Celebration & Event Planner Pro".
+Event Niche/Theme: ${eventType}
+Tone/Vibe: ${tone}
+
+App key features to showcase:
+1. 1-Click AI Blueprint generator (Instant budget allocation, vendor quotes, timeline).
+2. Proprietary Predictive Budget Overrun Radar (catches spending drift before invoices arrive, simulates 12% vendor savings).
+3. Minute-by-minute Day-of Run Sheets with assigned vendor leads.
+4. WhatsApp 1-tap direct invites & live dietary tracking (Veg, Non-Veg, Vegan, Jain).
+5. Offline-ready standalone export and executive PDF summaries.
+
+Return a JSON object with:
+1. "title": Catchy title for the reel.
+2. "hook": 3-second scroll-stopping audio hook.
+3. "scenes": Array of 5-6 scenes. Each scene has:
+   - "sceneNumber": number (1 to 6)
+   - "timeCode": string (e.g. "0:00 - 0:05")
+   - "visualAction": detailed description of what's shown on screen (UI zooms, motion graphics, split screens)
+   - "onScreenText": bold kinetic typography overlay (under 8 words)
+   - "voiceover": energetic, natural spoken narration
+   - "soundEffect": SFX cue (e.g. "Whoosh transition", "Cash register chime", "Subtle bass drop")
+4. "socialCaption": Complete Instagram/TikTok caption ready to post with emojis, value points, CTA ("Link in bio"), and 15 targeted hashtags.
+5. "musicStyle": Recommended background track type (e.g. "Upbeat Lo-Fi House 124 BPM" or "Cinematic Tech Future Bass").`;
+
+      const response = await ai.models.generateContent({
+        model: 'gemini-3.8-flash',
+        contents: prompt,
+        config: {
+          responseMimeType: 'application/json',
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              title: { type: Type.STRING },
+              hook: { type: Type.STRING },
+              scenes: {
+                type: Type.ARRAY,
+                items: {
+                  type: Type.OBJECT,
+                  properties: {
+                    sceneNumber: { type: Type.NUMBER },
+                    timeCode: { type: Type.STRING },
+                    visualAction: { type: Type.STRING },
+                    onScreenText: { type: Type.STRING },
+                    voiceover: { type: Type.STRING },
+                    soundEffect: { type: Type.STRING }
+                  },
+                  required: ['sceneNumber', 'timeCode', 'visualAction', 'onScreenText', 'voiceover', 'soundEffect']
+                }
+              },
+              socialCaption: { type: Type.STRING },
+              musicStyle: { type: Type.STRING }
+            },
+            required: ['title', 'hook', 'scenes', 'socialCaption', 'musicStyle']
+          }
+        }
+      });
+
+      const parsed = JSON.parse(response.text || '{}');
+      return res.json({ success: true, reel: parsed, source: 'gemini' });
+    }
+  } catch (err) {
+    console.warn('Gemini reel-script API fallback:', err);
+  }
+
+  // Smart fallback reel script
+  return res.json({
+    success: true,
+    reel: {
+      title: "The Death of The Event Planning Spreadsheet 💀",
+      hook: "Stop planning million-dollar events with 14 messy spreadsheet tabs.",
+      scenes: [
+        {
+          sceneNumber: 1,
+          timeCode: "0:00 - 0:04",
+          visualAction: "Rapid-fire close up of a chaotic Excel sheet with red error cells and 20 open browser tabs, followed by an immediate slam cut to EventCraft AI's sleek dark-mode glass dashboard.",
+          onScreenText: "STILL USING SPREADSHEETS? 🛑",
+          voiceover: "If you're still planning your wedding or corporate summit on a chaotic spreadsheet, you're one vendor invoice away from a total meltdown.",
+          soundEffect: "Record scratch followed by modern bass drop"
+        },
+        {
+          sceneNumber: 2,
+          timeCode: "0:04 - 0:09",
+          visualAction: "Screen recording tapping 'Wedding Blueprint' button. Instant auto-generation of 8 budget categories, 16-week checklist, and day-of cues in under 2 seconds.",
+          onScreenText: "1-CLICK AI EVENT BLUEPRINT ⚡",
+          voiceover: "Meet EventCraft AI. Select your celebration, enter your budget, and watch our AI engineer a complete master roadmap in 3 seconds.",
+          soundEffect: "Quick whoosh + satisfying chime"
+        },
+        {
+          sceneNumber: 3,
+          timeCode: "0:09 - 0:15",
+          visualAction: "Close up of the Predictive Spending Radar. Sliders moving as Trend-Weighted and Stress-Test models calculate overruns, then clicking 'Procurement Negotiation' to turn the deficit emerald green.",
+          onScreenText: "PREDICTIVE OVERRUN RADAR 📈",
+          voiceover: "The killer feature: A live predictive radar that catches spending drift weeks before invoices arrive and unlocks $3,200 in vendor negotiation savings.",
+          soundEffect: "Cash register ding + heartbeat pulse"
+        },
+        {
+          sceneNumber: 4,
+          timeCode: "0:15 - 0:21",
+          visualAction: "Split screen showing minute-by-minute Day-of Run Sheet for DJ and coordinators, plus direct WhatsApp RSVP invite engine with 0 app downloads.",
+          onScreenText: "RUN SHEET + WHATSAPP RSVP 📱",
+          voiceover: "Airtight day-of run sheets for your coordinators, and 1-tap WhatsApp invitations with live dietary tracking. Zero apps for your guests to download.",
+          soundEffect: "Message pop + camera shutter"
+        },
+        {
+          sceneNumber: 5,
+          timeCode: "0:21 - 0:26",
+          visualAction: "Tapping 'Export PDF' and 'Get HTML' to reveal instant offline-ready backup, with glowing confetti animation and sleek UI wrap-up.",
+          onScreenText: "OFFLINE READY & PDF EXPORT 📄",
+          voiceover: "Export executive PDF summaries or download the complete standalone app to use completely offline anywhere.",
+          soundEffect: "Swoosh + celebratory sparkle"
+        },
+        {
+          sceneNumber: 6,
+          timeCode: "0:26 - 0:30",
+          visualAction: "End title screen with glowing EventCraft AI logo, stars rating (4.9/5), and clear CTA arrow pointing to link.",
+          onScreenText: "TRY EVENTCRAFT AI FREE 🚀",
+          voiceover: "Stop stressing and start crafting. Tap the link in bio to try EventCraft AI for free today!",
+          soundEffect: "Uplifting synth chord resolve"
+        }
+      ],
+      socialCaption: "Planning an unforgettable wedding, gala, or summit without losing your sanity? 🥂✨\n\nEventCraft AI replaces 10 chaotic spreadsheets with:\n⚡ 1-Click AI Master Blueprints\n📈 Predictive Budget Overrun Radar (save $3,200+ on vendor drift)\n⏱️ Minute-by-Minute DJ & Coordinator Run Sheets\n📱 1-Tap WhatsApp RSVPs with Dietary Breakdown\n📄 1-Click Offline Standalone HTML & PDF Export\n\nTry it 100% free right now — link in bio! 🚀\n\n#eventplanner #weddingplanner #ai #tech #eventplanning #weddingtech #productivity #startups #corporategala #partysuccess #saas",
+      musicStyle: "Upbeat Lo-Fi Future Bass (124 BPM) with punchy sidechain kicks"
+    },
+    source: 'fallback'
+  });
+});
+
 function generateSmartFallbackPlan(type: string, budget: number, guests: number, city: string, notes: string) {
   const b = budget || 500000;
   return {

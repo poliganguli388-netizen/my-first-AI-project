@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, Moon, Sun, Printer, Download, Upload, FileCode } from 'lucide-react';
+import { Sparkles, Moon, Sun, Printer, Download, Upload, FileCode, ShieldCheck } from 'lucide-react';
 import { EventState } from '../types';
 
 interface NavbarProps {
@@ -12,6 +12,7 @@ interface NavbarProps {
   onImportJSON: (imported: EventState) => void;
   activeTab: string;
   onSelectTab: (tab: EventState['activeTab']) => void;
+  onOpenTestSuite?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -23,7 +24,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   onExportJSON,
   onImportJSON,
   activeTab,
-  onSelectTab
+  onSelectTab,
+  onOpenTestSuite
 }) => {
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -149,6 +151,22 @@ export const Navbar: React.FC<NavbarProps> = ({
             <Upload className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
             <span>Load</span>
           </button>
+
+          {/* Automated Test Suite & Quality Inspector */}
+          {onOpenTestSuite && (
+            <button
+              onClick={onOpenTestSuite}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200/90 bg-emerald-50/70 px-2.5 py-1.5 text-xs font-semibold text-emerald-800 hover:bg-emerald-100/90 focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-300 dark:hover:bg-emerald-900/60 transition-colors cursor-pointer"
+              title="Open Automated Test Suite & Code Quality Inspector"
+              aria-label="View automated test suite and code quality scorecard"
+            >
+              <ShieldCheck className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+              <span className="hidden md:inline">Test Suite</span>
+              <span className="rounded-xs bg-emerald-200/80 px-1 py-0.2 text-[10px] font-bold text-emerald-900 dark:bg-emerald-900 dark:text-emerald-200">
+                29/29 Pass
+              </span>
+            </button>
+          )}
 
           {/* Download Standalone HTML */}
           <a

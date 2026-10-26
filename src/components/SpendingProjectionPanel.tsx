@@ -2,6 +2,12 @@ import React, { useState, useMemo } from 'react';
 import { TrendingUp, AlertTriangle, ShieldCheck, Zap, ArrowUpRight, ArrowDownRight, Compass, Sparkles } from 'lucide-react';
 import { BudgetRow } from '../types';
 import { formatCurrency } from '../utils/formatters';
+import {
+  computeFinancialAnalytics,
+  computePerGuestMetrics,
+  ProjectionModel,
+  FinancialAnalyticsResult,
+} from '../utils/financialAnalytics';
 
 interface SpendingProjectionPanelProps {
   budget: number;
@@ -10,126 +16,30 @@ interface SpendingProjectionPanelProps {
   guests: number;
 }
 
-export type ProjectionModel = 'strict' | 'trend' | 'stress';
+export { type ProjectionModel };
 
 export const SpendingProjectionPanel: React.FC<SpendingProjectionPanelProps> = ({
   budget,
   currency,
   budgetRows,
-  guests
+  guests,
 }) => {
   const [model, setModel] = useState<ProjectionModel>('trend');
-  const [renegotiateLever, setRenegotiateLever] = useState(false);
+  const [renegotiateLever, setRenegotiateLever] = useState<boolean>(false);
 
-  const totalB = Number(budget) || 0;
+  const totalB = Number.isFinite(Number(budget)) ? Math.max(0, Number(budget)) : 0;
 
-  // Analysis of spending patterns across categories
-  const analysis = useMemo(() => {
-    let totalPlanned = 0;
-    let totalSpent = 0;
-    let overageCategoriesCount = 0;
-    let startedCategoriesCount = 0;
-    let sumActivePlanned = 0;
-    let sumActiveSpent = 0;
-
-    const categoryDrifts = budgetRows.map((r) => {
-      const planned = Number(r.planned) || 0;
-      const spent = Number(r.spent) || 0;
-      totalPlanned += planned;
-      totalSpent += spent;
-
-      const isStarted = spent > 0;
-      if (isStarted) {
-        startedCategoriesCount++;
-        sumActivePlanned += planned;
-        sumActiveSpent += spent;
-      }
-
-      const diff = spent - planned;
-      const ratio = planned > 0 ? spent / planned : 1;
-      if (diff > 0) overageCategoriesCount++;
-
-      return {
-        id: r.id,
-        name: r.name,
-        color: r.color,
-        planned,
-        spent,
-        diff,
-        ratio,
-        isStarted
-      };
-    });
-
-    // Average drift multiplier on active categories
-    const activeDriftMultiplier =
-      sumActivePlanned > 0 ? Math.max(0.9, Math.min(1.4, sumActiveSpent / sumActivePlanned)) : 1.0;
-
-    // Uncommitted / pending planned amount
-    const unspentPlanned = categoryDrifts
-      .filter((c) => !c.isStarted)
-      .reduce((acc, c) => acc + c.planned, 0);
-
-    const activeRemaining = categoryDrifts
-      .filter((c) => c.isStarted)
-      .reduce((acc, c) => acc + Math.max(0, c.planned - c.spent), 0);
-
-    // Compute Projected Final Spend for each model:
-    // 1. Strict: Already committed spent + remaining planned
-    const strictProjected = categoryDrifts.reduce((acc, c) => {
-      return acc + Math.max(c.spent, c.planned);
-    }, 0);
-
-    // 2. Trend: Active categories follow their current trend; pending categories follow the activeDriftMultiplier
-    const trendMultiplier = activeDriftMultiplier > 1 ? activeDriftMultiplier : 1.04;
-    const trendProjected = categoryDrifts.reduce((acc, c) => {
-      if (c.isStarted) {
-        // If spent already exceeds planned, keep spent or extrapolate slightly if ongoing
-        return acc + Math.max(c.spent, c.planned * (c.ratio > 1 ? c.ratio : 1.0));
-      }
-      // Pending category with trend factor (discounted if lever active)
-      const adjusted = c.planned * (renegotiateLever ? 0.92 : trendMultiplier);
-      return acc + adjusted;
-    }, 0);
-
-    // 3. Stress: Adds a +12% surcharge contingency for overtime, last minute rushes
-    const stressProjected = (renegotiateLever ? trendProjected : strictProjected * 1.12);
-
-    let finalProjected = trendProjected;
-    if (model === 'strict') finalProjected = strictProjected;
-    if (model === 'stress') finalProjected = stressProjected;
-
-    // Variance vs Total Budget
-    const projectedVariance = totalB - finalProjected; // positive = savings, negative = overrun
-    const isProjectedOver = projectedVariance < 0;
-
-    // Top trending drift categories (sorted by absolute variance or overage)
-    const topDrifting = [...categoryDrifts]
-      .sort((a, b) => b.diff - a.diff)
-      .slice(0, 4);
-
-    return {
-      totalPlanned,
-      totalSpent,
-      startedCategoriesCount,
-      overageCategoriesCount,
-      activeDriftMultiplier,
-      unspentPlanned,
-      strictProjected: Math.round(strictProjected),
-      trendProjected: Math.round(trendProjected),
-      stressProjected: Math.round(stressProjected),
-      finalProjected: Math.round(finalProjected),
-      projectedVariance: Math.round(projectedVariance),
-      isProjectedOver,
-      topDrifting
-    };
+  // Memoized statistical spending forecast from pure analytics engine
+  const analysis: FinancialAnalyticsResult = useMemo(() => {
+    return computeFinancialAnalytics(totalB, budgetRows, model, renegotiateLever);
   }, [budgetRows, totalB, model, renegotiateLever]);
 
-  const projectedPerGuest = guests > 0 ? Math.round(analysis.finalProjected / guests) : 0;
-  const targetPerGuest = guests > 0 ? Math.round(totalB / guests) : 0;
-  const perGuestDiff = projectedPerGuest - targetPerGuest;
+  // Per-guest velocity calculation
+  const { projectedPerGuest, targetPerGuest, difference: perGuestDiff } = useMemo(() => {
+    return computePerGuestMetrics(analysis.finalProjected, totalB, guests);
+  }, [analysis.finalProjected, totalB, guests]);
 
-  // Visual Gauge percentages (clamped 0 to 100)
+  // Visual Gauge scaling percentages (clamped 0 to 100)
   const maxScale = Math.max(totalB, analysis.finalProjected, analysis.totalSpent, 1) * 1.1;
   const spentPct = Math.min(100, (analysis.totalSpent / maxScale) * 100);
   const projectedPct = Math.min(100, (analysis.finalProjected / maxScale) * 100);
