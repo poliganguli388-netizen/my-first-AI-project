@@ -1002,16 +1002,24 @@ function renderFinance() {
   let projectedTotal = 0;
 
   if (projectionMode === 'strict') {
-    projectedTotal = state.budgetRows.reduce((acc, r) => acc + Math.max(Number(r.spent) || 0, Number(r.planned) || 0), 0);
+    projectedTotal = state.budgetRows.reduce(
+      (accumulatedTotal, budgetRow) => accumulatedTotal + Math.max(Number(budgetRow.spent) || 0, Number(budgetRow.planned) || 0),
+      0
+    );
   } else if (projectionMode === 'stress') {
-    projectedTotal = state.budgetRows.reduce((acc, r) => acc + Math.max(Number(r.spent) || 0, Number(r.planned) || 0), 0) * 1.12;
+    projectedTotal = state.budgetRows.reduce(
+      (accumulatedTotal, budgetRow) => accumulatedTotal + Math.max(Number(budgetRow.spent) || 0, Number(budgetRow.planned) || 0),
+      0
+    ) * 1.12;
   } else {
     // trend-weighted
-    projectedTotal = state.budgetRows.reduce((acc, r) => {
-      const p = Number(r.planned) || 0;
-      const s = Number(r.spent) || 0;
-      if (s > 0) return acc + Math.max(s, p * (s > p ? s / p : 1.0));
-      return acc + (p * Math.max(1.03, activeDrift));
+    projectedTotal = state.budgetRows.reduce((accumulatedTotal, budgetRow) => {
+      const plannedAmount = Number(budgetRow.planned) || 0;
+      const spentAmount = Number(budgetRow.spent) || 0;
+      if (spentAmount > 0) {
+        return accumulatedTotal + Math.max(spentAmount, plannedAmount * (spentAmount > plannedAmount ? spentAmount / plannedAmount : 1.0));
+      }
+      return accumulatedTotal + (plannedAmount * Math.max(1.03, activeDrift));
     }, 0);
   }
 

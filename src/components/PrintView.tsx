@@ -1,16 +1,37 @@
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/**
+ * EventCraft AI - Print & PDF Export View
+ * 
+ * Provides an ink-optimized, clean black-and-white print layout rendering the master
+ * run-of-show schedule, category financial breakdowns, vendor directory, and guest dietary lists.
+ */
+
 import React from 'react';
 import { EventState } from '../types';
 import { formatCurrency, formatDate } from '../utils/formatters';
 
 interface PrintViewProps {
+  /** Master event state */
   state: EventState;
 }
 
 export const PrintView: React.FC<PrintViewProps> = ({ state }) => {
-  const totalB = Number(state.budget) || 0;
-  const planned = state.budgetRows.reduce((a, b) => a + (b.planned || 0), 0);
-  const spent = state.budgetRows.reduce((a, b) => a + (b.spent || 0), 0);
-  const confirmedGuests = state.guestList.filter((g) => g.rsvp === 'Confirmed').reduce((a, b) => a + (b.count || 1), 0);
+  const masterBudgetTotal = Number(state.budget) || 0;
+  const totalPlannedAllocation = state.budgetRows.reduce(
+    (accumulatedTotal, budgetRow) => accumulatedTotal + (budgetRow.planned || 0),
+    0
+  );
+  const totalDisbursedSpend = state.budgetRows.reduce(
+    (accumulatedTotal, budgetRow) => accumulatedTotal + (budgetRow.spent || 0),
+    0
+  );
+  const totalConfirmedAttendees = state.guestList
+    .filter((guestItem) => guestItem.rsvp === 'Confirmed')
+    .reduce((accumulatedTotal, guestItem) => accumulatedTotal + (guestItem.count || 1), 0);
 
   return (
     <div className="hidden print:block p-8 text-black bg-white max-w-4xl mx-auto font-sans">
@@ -25,8 +46,8 @@ export const PrintView: React.FC<PrintViewProps> = ({ state }) => {
         <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-gray-700">
           <span>📅 Date: <b>{formatDate(state.date)}</b></span>
           <span>📍 Location: <b>{state.city || 'TBA'}</b></span>
-          <span>👥 Expected Guests: <b>{state.guests}</b> ({confirmedGuests} confirmed)</span>
-          <span>💰 Budget: <b>{formatCurrency(totalB, state.currency)}</b></span>
+          <span>👥 Expected Guests: <b>{state.guests}</b> ({totalConfirmedAttendees} confirmed)</span>
+          <span>💰 Budget: <b>{formatCurrency(masterBudgetTotal, state.currency)}</b></span>
         </div>
         {state.notes && (
           <p className="mt-2 text-xs italic text-gray-600">
@@ -50,12 +71,12 @@ export const PrintView: React.FC<PrintViewProps> = ({ state }) => {
             </tr>
           </thead>
           <tbody>
-            {state.schedule.map((s) => (
-              <tr key={s.id} className="border-b border-gray-200">
-                <td className="py-1.5 font-mono font-bold">{s.time}</td>
-                <td className="py-1.5 font-medium">{s.event}</td>
-                <td className="py-1.5">{s.lead || 'Host'}</td>
-                <td className="py-1.5 text-gray-600">{s.location || '-'}</td>
+            {state.schedule.map((scheduleCue) => (
+              <tr key={scheduleCue.id} className="border-b border-gray-200">
+                <td className="py-1.5 font-mono font-bold">{scheduleCue.time}</td>
+                <td className="py-1.5 font-medium">{scheduleCue.event}</td>
+                <td className="py-1.5">{scheduleCue.lead || 'Host'}</td>
+                <td className="py-1.5 text-gray-600">{scheduleCue.location || '-'}</td>
               </tr>
             ))}
           </tbody>
@@ -77,23 +98,27 @@ export const PrintView: React.FC<PrintViewProps> = ({ state }) => {
             </tr>
           </thead>
           <tbody>
-            {state.budgetRows.map((r) => {
-              const diff = (r.planned || 0) - (r.spent || 0);
+            {state.budgetRows.map((budgetRow) => {
+              const varianceAmount = (budgetRow.planned || 0) - (budgetRow.spent || 0);
               return (
-                <tr key={r.id} className="border-b border-gray-200">
-                  <td className="py-1.5 font-medium">{r.name}</td>
-                  <td className="py-1.5 text-right font-mono">{formatCurrency(r.planned, state.currency)}</td>
-                  <td className="py-1.5 text-right font-mono">{formatCurrency(r.spent, state.currency)}</td>
+                <tr key={budgetRow.id} className="border-b border-gray-200">
+                  <td className="py-1.5 font-medium">{budgetRow.name}</td>
+                  <td className="py-1.5 text-right font-mono">{formatCurrency(budgetRow.planned, state.currency)}</td>
+                  <td className="py-1.5 text-right font-mono">{formatCurrency(budgetRow.spent, state.currency)}</td>
                   <td className="py-1.5 text-right font-semibold">
-                    {diff < 0 ? `Over by ${formatCurrency(Math.abs(diff), state.currency)}` : 'On track'}
+                    {varianceAmount < 0
+                      ? `Over by ${formatCurrency(Math.abs(varianceAmount), state.currency)}`
+                      : 'On track'}
                   </td>
                 </tr>
               );
             })}
             <tr className="border-t-2 border-black font-bold">
-              <td className="py-2">Total Planned: {formatCurrency(planned, state.currency)}</td>
-              <td className="py-2 text-right">Paid: {formatCurrency(spent, state.currency)}</td>
-              <td className="py-2 text-right">Balance: {formatCurrency(totalB - spent, state.currency)}</td>
+              <td className="py-2">Total Planned: {formatCurrency(totalPlannedAllocation, state.currency)}</td>
+              <td className="py-2 text-right">Paid: {formatCurrency(totalDisbursedSpend, state.currency)}</td>
+              <td className="py-2 text-right">
+                Balance: {formatCurrency(masterBudgetTotal - totalDisbursedSpend, state.currency)}
+              </td>
               <td></td>
             </tr>
           </tbody>
@@ -116,13 +141,13 @@ export const PrintView: React.FC<PrintViewProps> = ({ state }) => {
             </tr>
           </thead>
           <tbody>
-            {state.vendors.map((v) => (
-              <tr key={v.id} className="border-b border-gray-200">
-                <td className="py-1.5 font-bold">{v.name}</td>
-                <td className="py-1.5">{v.cat}</td>
-                <td className="py-1.5 uppercase font-mono text-[11px]">{v.status}</td>
-                <td className="py-1.5 text-right font-mono">{formatCurrency(v.quote, state.currency)}</td>
-                <td className="py-1.5 text-gray-600">{v.note || '-'}</td>
+            {state.vendors.map((vendorRecord) => (
+              <tr key={vendorRecord.id} className="border-b border-gray-200">
+                <td className="py-1.5 font-bold">{vendorRecord.name}</td>
+                <td className="py-1.5">{vendorRecord.cat}</td>
+                <td className="py-1.5 uppercase font-mono text-[11px]">{vendorRecord.status}</td>
+                <td className="py-1.5 text-right font-mono">{formatCurrency(vendorRecord.quote, state.currency)}</td>
+                <td className="py-1.5 text-gray-600">{vendorRecord.note || '-'}</td>
               </tr>
             ))}
           </tbody>
@@ -135,10 +160,14 @@ export const PrintView: React.FC<PrintViewProps> = ({ state }) => {
           👥 Guest List & Dietary Split
         </h2>
         <div className="grid grid-cols-2 gap-x-8 gap-y-1 text-xs">
-          {state.guestList.map((g) => (
-            <div key={g.id} className="flex justify-between py-1 border-b border-gray-100">
-              <span className="font-medium">{g.name} ({g.count} pax) {g.table ? `· ${g.table}` : ''}</span>
-              <span className="font-mono text-gray-600">{g.diet} · {g.rsvp}</span>
+          {state.guestList.map((guestRecord) => (
+            <div key={guestRecord.id} className="flex justify-between py-1 border-b border-gray-100">
+              <span className="font-medium">
+                {guestRecord.name} ({guestRecord.count} pax) {guestRecord.table ? `· ${guestRecord.table}` : ''}
+              </span>
+              <span className="font-mono text-gray-600">
+                {guestRecord.diet} · {guestRecord.rsvp}
+              </span>
             </div>
           ))}
         </div>

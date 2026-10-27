@@ -1,27 +1,67 @@
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/**
+ * EventCraft AI - Event Setup & Specification Card
+ * 
+ * Provides interactive inputs for primary event parameters (Type, Date, Guest Count,
+ * Budget Ceiling, Location, Creative Vision) and one-click starter template loaders.
+ */
+
 import React from 'react';
-import { Sliders, Wand2, Mail, Lightbulb, ClipboardList, Loader2, Sparkles, MapPin, Calendar, Users, DollarSign } from 'lucide-react';
+import {
+  Sliders,
+  Wand2,
+  Mail,
+  Lightbulb,
+  ClipboardList,
+  Loader2,
+  Sparkles
+} from 'lucide-react';
 import { EventType } from '../types';
 
 interface EventSetupCardProps {
+  /** Event archetype classification */
   type: EventType;
+  /** Callback when event type is changed */
   onChangeType: (type: EventType) => void;
+  /** ISO date string */
   date: string;
+  /** Callback when target date changes */
   onChangeDate: (date: string) => void;
+  /** Estimated guest count */
   guests: number;
+  /** Callback when guest count changes */
   onChangeGuests: (guests: number) => void;
+  /** Master budget ceiling */
   budget: number;
+  /** Callback when budget ceiling changes */
   onChangeBudget: (budget: number) => void;
+  /** Active currency symbol */
   currency: string;
+  /** Geographical host locality */
   city: string;
+  /** Callback when host locality changes */
   onChangeCity: (city: string) => void;
+  /** Host vision and creative notes */
   notes: string;
+  /** Callback when creative notes change */
   onChangeNotes: (notes: string) => void;
+  /** Callback to load a pre-configured template */
   onLoadTemplate: (type: EventType) => void;
+  /** Callback to invoke Gemini automated planning */
   onAutoPlan: () => void;
+  /** Callback to open digital invitation generator */
   onOpenInviteModal: () => void;
+  /** Callback to open AI Budget Doctor */
   onOpenBudgetDoctor: () => void;
+  /** Callback to open AI Vendor Checklist */
   onOpenVendorChecklist: () => void;
+  /** Loading state flag for AI actions */
   isAiLoading: boolean;
+  /** Active AI action identifier ('plan' | 'invite' | 'budget' | 'vendor') */
   aiActionName: string;
 }
 
@@ -67,7 +107,9 @@ export const EventSetupCard: React.FC<EventSetupCardProps> = ({
 
         {/* Quick Starter Templates */}
         <div className="flex flex-wrap items-center gap-1.5">
-          <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 mr-1">Pre-built Starters:</span>
+          <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 mr-1">
+            Pre-built Starters:
+          </span>
           <button
             onClick={() => onLoadTemplate('wedding')}
             className="rounded-lg border border-slate-200/90 bg-slate-50/80 px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:border-slate-700/80 dark:bg-slate-800/80 dark:text-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
@@ -109,7 +151,7 @@ export const EventSetupCard: React.FC<EventSetupCardProps> = ({
           </label>
           <select
             value={type}
-            onChange={(e) => onChangeType(e.target.value as EventType)}
+            onChange={(event) => onChangeType(event.target.value as EventType)}
             className="mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2 text-sm font-semibold text-slate-800 focus:border-indigo-500 focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-100 dark:focus:border-indigo-500 transition-all cursor-pointer"
           >
             <option value="wedding">Indian Wedding / Sangeet</option>
@@ -129,7 +171,7 @@ export const EventSetupCard: React.FC<EventSetupCardProps> = ({
           <input
             type="date"
             value={date}
-            onChange={(e) => onChangeDate(e.target.value)}
+            onChange={(event) => onChangeDate(event.target.value)}
             className="mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2 text-sm font-semibold text-slate-800 focus:border-indigo-500 focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-100 dark:focus:border-indigo-500 transition-all"
           />
         </div>
@@ -143,7 +185,7 @@ export const EventSetupCard: React.FC<EventSetupCardProps> = ({
               type="number"
               min="1"
               value={guests || ''}
-              onChange={(e) => onChangeGuests(Math.max(1, Number(e.target.value) || 0))}
+              onChange={(event) => onChangeGuests(Math.max(1, Number(event.target.value) || 0))}
               placeholder="100"
               className="w-full font-mono tabular-nums rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2 text-sm font-semibold text-slate-800 focus:border-indigo-500 focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-100 dark:focus:border-indigo-500 transition-all"
             />
@@ -163,7 +205,7 @@ export const EventSetupCard: React.FC<EventSetupCardProps> = ({
               min="0"
               step="5000"
               value={budget || ''}
-              onChange={(e) => onChangeBudget(Math.max(0, Number(e.target.value) || 0))}
+              onChange={(event) => onChangeBudget(Math.max(0, Number(event.target.value) || 0))}
               placeholder="500000"
               className="w-full font-mono tabular-nums rounded-xl border border-slate-200 bg-slate-50/70 py-2 pl-7 pr-3 text-sm font-semibold text-slate-800 focus:border-indigo-500 focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-100 dark:focus:border-indigo-500 transition-all"
             />
@@ -177,7 +219,7 @@ export const EventSetupCard: React.FC<EventSetupCardProps> = ({
           <input
             type="text"
             value={city}
-            onChange={(e) => onChangeCity(e.target.value)}
+            onChange={(event) => onChangeCity(event.target.value)}
             placeholder="e.g. Udaipur, Mumbai, Goa"
             className="mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2 text-sm font-semibold text-slate-800 focus:border-indigo-500 focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-100 dark:focus:border-indigo-500 transition-all"
           />
@@ -189,7 +231,7 @@ export const EventSetupCard: React.FC<EventSetupCardProps> = ({
           </label>
           <textarea
             value={notes}
-            onChange={(e) => onChangeNotes(e.target.value)}
+            onChange={(event) => onChangeNotes(event.target.value)}
             rows={2}
             placeholder="Theme styling (e.g. Royal Rajasthani heritage, brass lanterns), vegetarian live chaat counters, acoustic jazz band, outdoor lawn with rain shelter..."
             className="mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 py-2 text-sm font-medium text-slate-800 focus:border-indigo-500 focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-100 dark:focus:border-indigo-500 transition-all"

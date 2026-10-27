@@ -1,17 +1,48 @@
-import React from 'react';
-import { Sparkles, Moon, Sun, Printer, Download, Upload, FileCode, ShieldCheck } from 'lucide-react';
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/**
+ * EventCraft AI - Navigation Bar Component
+ * 
+ * Provides global navigation, theme mode toggling (light/dark), currency selection,
+ * JSON backup export/import handlers, PDF export triggers, and test suite inspector launcher.
+ */
+
+import React, { useRef } from 'react';
+import {
+  Sparkles,
+  Moon,
+  Sun,
+  Printer,
+  Download,
+  Upload,
+  FileCode,
+  ShieldCheck
+} from 'lucide-react';
 import { EventState } from '../types';
 
 interface NavbarProps {
+  /** Current visual theme */
   theme: 'light' | 'dark';
+  /** Callback to toggle between light and dark modes */
   onToggleTheme: () => void;
+  /** Active currency symbol */
   currency: string;
-  onChangeCurrency: (curr: string) => void;
+  /** Callback when currency selection changes */
+  onChangeCurrency: (currencySymbol: string) => void;
+  /** Callback to trigger browser print dialog for PDF export */
   onPrint: () => void;
+  /** Callback to initiate JSON backup download */
   onExportJSON: () => void;
-  onImportJSON: (imported: EventState) => void;
+  /** Callback to hydrate imported event state */
+  onImportJSON: (importedState: EventState) => void;
+  /** Currently active tab identifier */
   activeTab: string;
-  onSelectTab: (tab: EventState['activeTab']) => void;
+  /** Callback when user selects a different navigation tab */
+  onSelectTab: (selectedTab: EventState['activeTab']) => void;
+  /** Optional callback to open test suite modal */
   onOpenTestSuite?: () => void;
 }
 
@@ -27,24 +58,30 @@ export const Navbar: React.FC<NavbarProps> = ({
   onSelectTab,
   onOpenTestSuite
 }) => {
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const fileInputElementRef = useRef<HTMLInputElement>(null);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (event) => {
+  /**
+   * Handles user selection of a backup JSON file for state hydration.
+   */
+  const handleFileInputChange = (changeEvent: React.ChangeEvent<HTMLInputElement>): void => {
+    const selectedFile = changeEvent.target.files?.[0];
+    if (!selectedFile) {
+      return;
+    }
+
+    const fileReader = new FileReader();
+    fileReader.onload = (fileLoadEvent: ProgressEvent<FileReader>): void => {
       try {
-        const json = JSON.parse(event.target?.result as string);
-        if (json && json.name && json.budgetRows) {
-          onImportJSON(json);
+        const parsedState = JSON.parse(fileLoadEvent.target?.result as string) as EventState;
+        if (parsedState && parsedState.name && Array.isArray(parsedState.budgetRows)) {
+          onImportJSON(parsedState);
         }
-      } catch (err) {
-        console.error('Invalid JSON file', err);
+      } catch (parseError) {
+        console.error('Invalid JSON event plan format:', parseError);
       }
     };
-    reader.readAsText(file);
-    e.target.value = '';
+    fileReader.readAsText(selectedFile);
+    changeEvent.target.value = '';
   };
 
   return (
@@ -64,37 +101,49 @@ export const Navbar: React.FC<NavbarProps> = ({
         <nav className="hidden lg:flex items-center gap-5 text-sm font-medium text-slate-600 dark:text-slate-300">
           <button
             onClick={() => onSelectTab('budget')}
-            className={`transition-colors hover:text-indigo-600 dark:hover:text-indigo-400 ${activeTab === 'budget' ? 'font-semibold text-indigo-600 dark:text-indigo-400' : ''}`}
+            className={`transition-colors hover:text-indigo-600 dark:hover:text-indigo-400 cursor-pointer ${
+              activeTab === 'budget' ? 'font-semibold text-indigo-600 dark:text-indigo-400' : ''
+            }`}
           >
             Budget
           </button>
           <button
             onClick={() => onSelectTab('timeline')}
-            className={`transition-colors hover:text-indigo-600 dark:hover:text-indigo-400 ${activeTab === 'timeline' ? 'font-semibold text-indigo-600 dark:text-indigo-400' : ''}`}
+            className={`transition-colors hover:text-indigo-600 dark:hover:text-indigo-400 cursor-pointer ${
+              activeTab === 'timeline' ? 'font-semibold text-indigo-600 dark:text-indigo-400' : ''
+            }`}
           >
             Milestones
           </button>
           <button
             onClick={() => onSelectTab('schedule')}
-            className={`transition-colors hover:text-indigo-600 dark:hover:text-indigo-400 ${activeTab === 'schedule' ? 'font-semibold text-indigo-600 dark:text-indigo-400' : ''}`}
+            className={`transition-colors hover:text-indigo-600 dark:hover:text-indigo-400 cursor-pointer ${
+              activeTab === 'schedule' ? 'font-semibold text-indigo-600 dark:text-indigo-400' : ''
+            }`}
           >
             Run Sheet
           </button>
           <button
             onClick={() => onSelectTab('vendors')}
-            className={`transition-colors hover:text-indigo-600 dark:hover:text-indigo-400 ${activeTab === 'vendors' ? 'font-semibold text-indigo-600 dark:text-indigo-400' : ''}`}
+            className={`transition-colors hover:text-indigo-600 dark:hover:text-indigo-400 cursor-pointer ${
+              activeTab === 'vendors' ? 'font-semibold text-indigo-600 dark:text-indigo-400' : ''
+            }`}
           >
             Vendors
           </button>
           <button
             onClick={() => onSelectTab('guests')}
-            className={`transition-colors hover:text-indigo-600 dark:hover:text-indigo-400 ${activeTab === 'guests' ? 'font-semibold text-indigo-600 dark:text-indigo-400' : ''}`}
+            className={`transition-colors hover:text-indigo-600 dark:hover:text-indigo-400 cursor-pointer ${
+              activeTab === 'guests' ? 'font-semibold text-indigo-600 dark:text-indigo-400' : ''
+            }`}
           >
             Guests & RSVP
           </button>
           <button
             onClick={() => onSelectTab('ideas')}
-            className={`transition-colors hover:text-indigo-600 dark:hover:text-indigo-400 ${activeTab === 'ideas' ? 'font-semibold text-indigo-600 dark:text-indigo-400' : ''}`}
+            className={`transition-colors hover:text-indigo-600 dark:hover:text-indigo-400 cursor-pointer ${
+              activeTab === 'ideas' ? 'font-semibold text-indigo-600 dark:text-indigo-400' : ''
+            }`}
           >
             Ideas
           </button>
@@ -105,8 +154,8 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Currency Selector */}
           <select
             value={currency}
-            onChange={(e) => onChangeCurrency(e.target.value)}
-            className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+            onChange={(event) => onChangeCurrency(event.target.value)}
+            className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 cursor-pointer"
             title="Currency"
           >
             <option value="₹">₹ INR</option>
@@ -118,7 +167,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Theme Toggle */}
           <button
             onClick={onToggleTheme}
-            className="rounded-lg border border-slate-200 bg-white p-2 text-slate-600 hover:bg-slate-50 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-white"
+            className="rounded-lg border border-slate-200 bg-white p-2 text-slate-600 hover:bg-slate-50 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-white cursor-pointer"
             title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
             aria-label="Toggle theme"
           >
@@ -128,7 +177,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Export JSON / Backup */}
           <button
             onClick={onExportJSON}
-            className="hidden sm:inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+            className="hidden sm:inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 cursor-pointer"
             title="Export Event JSON backup"
           >
             <Download className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
@@ -138,14 +187,14 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Import JSON */}
           <input
             type="file"
-            ref={fileInputRef}
-            onChange={handleFileChange}
+            ref={fileInputElementRef}
+            onChange={handleFileInputChange}
             accept=".json"
             className="hidden"
           />
           <button
-            onClick={() => fileInputRef.current?.click()}
-            className="hidden sm:inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+            onClick={() => fileInputElementRef.current?.click()}
+            className="hidden sm:inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 cursor-pointer"
             title="Import Event JSON"
           >
             <Upload className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />

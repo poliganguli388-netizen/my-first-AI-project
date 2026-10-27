@@ -1,13 +1,37 @@
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/**
+ * EventCraft AI - AI Intelligence Modal Dialog
+ * 
+ * Displays multi-channel digital invitation copy (WhatsApp, Email, SMS),
+ * algorithmic budget diagnosis from the Budget Doctor, and vendor contract red flags.
+ */
+
 import React, { useState } from 'react';
-import { X, Copy, Check, ExternalLink, Sparkles, AlertCircle, HelpCircle } from 'lucide-react';
+import { X, Copy, Check, ExternalLink, Sparkles, AlertCircle } from 'lucide-react';
+import {
+  ModalData,
+  InviteModalData,
+  BudgetDoctorModalData,
+  VendorChecklistModalData
+} from '../types';
 
 interface AIModalProps {
+  /** Visibility state flag */
   isOpen: boolean;
+  /** Callback to dismiss modal */
   onClose: () => void;
+  /** Modal header title */
   title: string;
+  /** Active intelligence generator subtype */
   type: 'invite' | 'budget' | 'vendor' | 'generic';
-  data: any;
-  onToast: (msg: string) => void;
+  /** Strongly typed payload produced by the AI endpoint */
+  data: ModalData;
+  /** Toast notification dispatch */
+  onToast: (message: string) => void;
 }
 
 export const AIModal: React.FC<AIModalProps> = ({
@@ -18,17 +42,26 @@ export const AIModal: React.FC<AIModalProps> = ({
   data,
   onToast
 }) => {
-  const [copied, setCopied] = useState(false);
+  const [hasCopiedText, setHasCopiedText] = useState(false);
   const [activeInviteTab, setActiveInviteTab] = useState<'whatsapp' | 'email' | 'sms'>('whatsapp');
 
-  if (!isOpen) return null;
+  if (!isOpen) {
+    return null;
+  }
 
-  const handleCopy = (text: string) => {
-    navigator.clipboard.writeText(text);
-    setCopied(true);
+  /**
+   * Copies formatted text to system clipboard and dispatches user toast.
+   */
+  const handleCopyTextToClipboard = (textToCopy: string) => {
+    navigator.clipboard.writeText(textToCopy);
+    setHasCopiedText(true);
     onToast('Copied to clipboard!');
-    setTimeout(() => setCopied(false), 2000);
+    setTimeout(() => setHasCopiedText(false), 2000);
   };
+
+  const inviteData = type === 'invite' ? (data as InviteModalData) : null;
+  const budgetData = type === 'budget' ? (data as BudgetDoctorModalData) : null;
+  const vendorData = type === 'vendor' ? (data as VendorChecklistModalData) : null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
@@ -53,7 +86,7 @@ export const AIModal: React.FC<AIModalProps> = ({
 
         {/* Body */}
         <div className="p-6 overflow-y-auto space-y-4 text-sm text-slate-700 dark:text-slate-300">
-          {type === 'invite' && data && (
+          {type === 'invite' && inviteData && (
             <div className="space-y-4">
               {/* Tab Selector */}
               <div className="flex items-center gap-1 rounded-lg bg-slate-100 p-1 dark:bg-slate-800">
@@ -92,17 +125,17 @@ export const AIModal: React.FC<AIModalProps> = ({
               {/* Invitation Text Box */}
               <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 font-normal whitespace-pre-wrap leading-relaxed dark:border-slate-800 dark:bg-slate-800/60 select-all">
                 {activeInviteTab === 'whatsapp'
-                  ? data.whatsapp
+                  ? inviteData.whatsapp
                   : activeInviteTab === 'email'
-                  ? data.email
-                  : data.sms}
+                  ? inviteData.email
+                  : inviteData.sms}
               </div>
 
               {/* Action Buttons */}
               <div className="flex flex-wrap items-center gap-2.5 pt-2">
                 {activeInviteTab === 'whatsapp' && (
                   <a
-                    href={`https://wa.me/?text=${encodeURIComponent(data.whatsapp || '')}`}
+                    href={`https://wa.me/?text=${encodeURIComponent(inviteData.whatsapp || '')}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-700 transition-colors shadow-2xs"
@@ -113,87 +146,108 @@ export const AIModal: React.FC<AIModalProps> = ({
                 )}
                 <button
                   onClick={() =>
-                    handleCopy(
+                    handleCopyTextToClipboard(
                       activeInviteTab === 'whatsapp'
-                        ? data.whatsapp
+                        ? inviteData.whatsapp
                         : activeInviteTab === 'email'
-                        ? data.email
-                        : data.sms
+                        ? inviteData.email
+                        : inviteData.sms
                     )
                   }
                   className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 transition-colors"
                 >
-                  {copied ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
-                  <span>{copied ? 'Copied!' : 'Copy to Clipboard'}</span>
+                  {hasCopiedText ? (
+                    <Check className="h-3.5 w-3.5 text-emerald-500" />
+                  ) : (
+                    <Copy className="h-3.5 w-3.5" />
+                  )}
+                  <span>{hasCopiedText ? 'Copied!' : 'Copy to Clipboard'}</span>
                 </button>
               </div>
             </div>
           )}
 
-          {type === 'budget' && data && (
+          {type === 'budget' && budgetData && (
             <div className="space-y-4">
-              {data.healthAssessment && (
+              {budgetData.healthAssessment && (
                 <div className="rounded-xl border border-indigo-200 bg-indigo-50/70 p-4 text-xs leading-relaxed font-medium text-indigo-900 dark:border-indigo-900/60 dark:bg-indigo-950/40 dark:text-indigo-200">
-                  {data.healthAssessment}
+                  {budgetData.healthAssessment}
                 </div>
               )}
 
-              {data.topSavingsTips && data.topSavingsTips.length > 0 && (
+              {budgetData.topSavingsTips && budgetData.topSavingsTips.length > 0 && (
                 <div>
                   <h4 className="font-bold text-slate-900 dark:text-white flex items-center gap-2 text-sm mb-2">
                     <Sparkles className="h-4 w-4 text-amber-500" />
                     <span>Top Cost-Saving Strategies</span>
                   </h4>
                   <ul className="space-y-2 text-xs pl-2">
-                    {data.topSavingsTips.map((tip: string, idx: number) => (
-                      <li key={idx} className="flex items-start gap-2">
+                    {budgetData.topSavingsTips.map((savingsTip, tipIndex) => (
+                      <li key={tipIndex} className="flex items-start gap-2">
                         <span className="font-bold text-indigo-600 dark:text-indigo-400 mt-0.5">•</span>
-                        <span>{tip}</span>
+                        <span>{savingsTip}</span>
                       </li>
                     ))}
                   </ul>
                 </div>
               )}
 
-              {data.hiddenCostsToWatch && data.hiddenCostsToWatch.length > 0 && (
-                <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
+              {budgetData.negotiationLevers && budgetData.negotiationLevers.length > 0 && (
+                <div>
+                  <h4 className="font-bold text-slate-900 dark:text-white flex items-center gap-2 text-sm mb-2">
+                    <Sparkles className="h-4 w-4 text-emerald-500" />
+                    <span>High-Leverage Vendor Negotiation Angles</span>
+                  </h4>
+                  <ul className="space-y-2 text-xs pl-2">
+                    {budgetData.negotiationLevers.map((negotiationLever, leverIndex) => (
+                      <li key={leverIndex} className="flex items-start gap-2">
+                        <span className="font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">•</span>
+                        <span>{negotiationLever}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {budgetData.hiddenCostsToWatch && budgetData.hiddenCostsToWatch.length > 0 && (
+                <div>
                   <h4 className="font-bold text-rose-600 dark:text-rose-400 flex items-center gap-2 text-sm mb-2">
                     <AlertCircle className="h-4 w-4" />
                     <span>Hidden Vendor Surcharges to Watch Out For</span>
                   </h4>
                   <ul className="space-y-2 text-xs pl-2">
-                    {data.hiddenCostsToWatch.map((cost: string, idx: number) => (
-                      <li key={idx} className="flex items-start gap-2">
+                    {budgetData.hiddenCostsToWatch.map((surchargeItem, surchargeIndex) => (
+                      <li key={surchargeIndex} className="flex items-start gap-2">
                         <span className="font-bold text-rose-500 mt-0.5">•</span>
-                        <span>{cost}</span>
+                        <span>{surchargeItem}</span>
                       </li>
                     ))}
                   </ul>
                 </div>
               )}
 
-              {data.rebalancingRecommendations && (
+              {budgetData.rebalancingRecommendations && (
                 <div className="rounded-lg bg-slate-50 p-3 text-xs text-slate-600 dark:bg-slate-800 dark:text-slate-300">
-                  <b>Reserve Buffer Recommendation:</b> {data.rebalancingRecommendations}
+                  <b>Reserve Buffer Recommendation:</b> {budgetData.rebalancingRecommendations}
                 </div>
               )}
             </div>
           )}
 
-          {type === 'vendor' && data && (
+          {type === 'vendor' && vendorData && (
             <div className="space-y-4">
               <p className="text-xs text-slate-500 dark:text-slate-400">
                 Essential questions and red flag clauses to negotiate before signing vendor deposits:
               </p>
 
-              {data.categories &&
-                data.categories.map((cat: any, idx: number) => (
+              {vendorData.categories &&
+                vendorData.categories.map((categorySection, sectionIndex) => (
                   <div
-                    key={idx}
+                    key={sectionIndex}
                     className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-800/40"
                   >
                     <h4 className="font-bold text-indigo-600 dark:text-indigo-400 text-sm mb-2">
-                      {cat.category}
+                      {categorySection.category}
                     </h4>
 
                     <div className="space-y-1.5 mb-3">
@@ -201,27 +255,29 @@ export const AIModal: React.FC<AIModalProps> = ({
                         Must-Ask Interview Questions:
                       </div>
                       <ul className="space-y-1 pl-2 text-xs text-slate-700 dark:text-slate-300">
-                        {cat.questions.map((q: string, qIdx: number) => (
-                          <li key={qIdx} className="flex items-start gap-1.5">
+                        {categorySection.questions.map((questionItem, questionIndex) => (
+                          <li key={questionIndex} className="flex items-start gap-1.5">
                             <span className="text-indigo-500 font-bold">•</span>
-                            <span>{q}</span>
+                            <span>{questionItem}</span>
                           </li>
                         ))}
                       </ul>
                     </div>
 
-                    {cat.contractRedFlags && (
+                    {categorySection.contractRedFlags && (
                       <div className="pt-2 border-t border-slate-200 dark:border-slate-700/60">
                         <div className="text-[11px] font-bold text-rose-600 uppercase tracking-wider dark:text-rose-400">
                           Contract Red Flags to Strike:
                         </div>
                         <ul className="space-y-1 pl-2 text-xs text-slate-600 dark:text-slate-400 mt-1">
-                          {cat.contractRedFlags.map((rf: string, rIdx: number) => (
-                            <li key={rIdx} className="flex items-start gap-1.5">
-                              <span className="text-rose-500 font-bold">⚠️</span>
-                              <span>{rf}</span>
-                            </li>
-                          ))}
+                          {categorySection.contractRedFlags.map(
+                            (contractRedFlag, flagIndex) => (
+                              <li key={flagIndex} className="flex items-start gap-1.5">
+                                <span className="text-rose-500 font-bold">⚠️</span>
+                                <span>{contractRedFlag}</span>
+                              </li>
+                            )
+                          )}
                         </ul>
                       </div>
                     )}

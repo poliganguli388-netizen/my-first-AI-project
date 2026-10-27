@@ -1,11 +1,27 @@
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/**
+ * EventCraft AI - Timeline & Milestone Planning Tab
+ * 
+ * Provides milestone scheduling, completion status tracking, chronological sorting,
+ * and completion progress visualization.
+ */
+
 import React, { useState } from 'react';
 import { Plus, Trash2, CheckSquare } from 'lucide-react';
 import { TaskItem } from '../../types';
 
 interface TimelineTabProps {
+  /** Array of chronological milestone tasks */
   tasks: TaskItem[];
+  /** Callback to toggle task completion */
   onToggleTask: (id: string, done: boolean) => void;
+  /** Callback to delete a task by identifier */
   onDeleteTask: (id: string) => void;
+  /** Callback to append a new milestone */
   onAddTask: (text: string, weeks: number) => void;
 }
 
@@ -15,21 +31,29 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
   onDeleteTask,
   onAddTask
 }) => {
-  const [newText, setNewText] = useState('');
-  const [newWeeks, setNewWeeks] = useState('4');
+  const [newTaskText, setNewTaskText] = useState('');
+  const [newWeeksLeadTime, setNewWeeksLeadTime] = useState('4');
 
-  const handleAdd = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newText.trim()) return;
-    onAddTask(newText.trim(), Number(newWeeks) || 0);
-    setNewText('');
+  /**
+   * Handles user submission of a new milestone task.
+   */
+  const handleAddTaskSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!newTaskText.trim()) {
+      return;
+    }
+    onAddTask(newTaskText.trim(), Number(newWeeksLeadTime) || 0);
+    setNewTaskText('');
   };
 
-  const completedCount = tasks.filter((t) => t.done).length;
-  const pctDone = tasks.length > 0 ? Math.round((completedCount / tasks.length) * 100) : 0;
+  const completedMilestoneCount = tasks.filter((taskItem) => taskItem.done).length;
+  const percentageCompleted =
+    tasks.length > 0 ? Math.round((completedMilestoneCount / tasks.length) * 100) : 0;
 
-  // Sort descending by weeks before event so earliest planning comes first
-  const sortedTasks = [...tasks].sort((a, b) => b.weeks - a.weeks);
+  // Sort descending by weeks before event so earliest planning milestones appear first
+  const sortedMilestoneTasks = [...tasks].sort(
+    (earlierTask, laterTask) => laterTask.weeks - earlierTask.weeks
+  );
 
   return (
     <div className="space-y-4">
@@ -38,12 +62,13 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
         <div className="flex items-center gap-2">
           <CheckSquare className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
           <span>
-            <b>{completedCount}</b> of <b>{tasks.length}</b> milestones achieved ({pctDone}%)
+            <b>{completedMilestoneCount}</b> of <b>{tasks.length}</b> milestones achieved (
+            {percentageCompleted}%)
           </span>
         </div>
         <div className="w-full sm:w-48 h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
           <div
-            style={{ width: `${pctDone}%` }}
+            style={{ width: `${percentageCompleted}%` }}
             className="h-full bg-gradient-to-r from-indigo-600 to-pink-500 rounded-full transition-all duration-300"
           />
         </div>
@@ -51,11 +76,11 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
 
       {/* Task Rows */}
       <div className="space-y-2">
-        {sortedTasks.map((t) => (
+        {sortedMilestoneTasks.map((taskItem) => (
           <div
-            key={t.id}
+            key={taskItem.id}
             className={`flex items-center justify-between gap-3 rounded-lg border p-3 transition-all ${
-              t.done
+              taskItem.done
                 ? 'border-slate-200 bg-slate-50/70 text-slate-400 dark:border-slate-800 dark:bg-slate-900/40 dark:text-slate-500'
                 : 'border-slate-200 bg-white text-slate-800 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200'
             }`}
@@ -63,26 +88,26 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
             <div className="flex items-center gap-3 flex-1">
               <input
                 type="checkbox"
-                checked={t.done}
-                onChange={(e) => onToggleTask(t.id, e.target.checked)}
+                checked={taskItem.done}
+                onChange={(event) => onToggleTask(taskItem.id, event.target.checked)}
                 className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-800 cursor-pointer"
               />
               <span
                 className={`text-sm font-medium ${
-                  t.done ? 'line-through text-slate-400 dark:text-slate-500' : ''
+                  taskItem.done ? 'line-through text-slate-400 dark:text-slate-500' : ''
                 }`}
               >
-                {t.text}
+                {taskItem.text}
               </span>
             </div>
 
             <div className="flex items-center gap-3 shrink-0">
               <span className="text-xs font-mono font-medium text-indigo-600 dark:text-indigo-400 whitespace-nowrap">
-                {t.weeks > 0 ? `${t.weeks}w prior` : 'Event week'}
+                {taskItem.weeks > 0 ? `${taskItem.weeks}w prior` : 'Event week'}
               </span>
 
               <button
-                onClick={() => onDeleteTask(t.id)}
+                onClick={() => onDeleteTask(taskItem.id)}
                 className="rounded p-1.5 text-slate-400 hover:bg-slate-100 hover:text-rose-600 dark:hover:bg-slate-800 dark:hover:text-rose-400 transition-colors"
                 title="Delete milestone"
               >
@@ -100,11 +125,14 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
       </div>
 
       {/* Add Task Toolbar */}
-      <form onSubmit={handleAdd} className="flex flex-wrap items-center gap-2 pt-3 border-t border-dashed border-slate-200 dark:border-slate-800">
+      <form
+        onSubmit={handleAddTaskSubmit}
+        className="flex flex-wrap items-center gap-2 pt-3 border-t border-dashed border-slate-200 dark:border-slate-800"
+      >
         <input
           type="text"
-          value={newText}
-          onChange={(e) => setNewText(e.target.value)}
+          value={newTaskText}
+          onChange={(event) => setNewTaskText(event.target.value)}
           placeholder="New milestone (e.g. Schedule venue walk-through, book cake designer)..."
           className="flex-1 min-w-[200px] rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-800 focus:border-indigo-500 focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
         />
@@ -113,8 +141,8 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
             type="number"
             min="0"
             max="52"
-            value={newWeeks}
-            onChange={(e) => setNewWeeks(e.target.value)}
+            value={newWeeksLeadTime}
+            onChange={(event) => setNewWeeksLeadTime(event.target.value)}
             className="w-16 rounded-lg border border-slate-200 bg-slate-50 py-2 px-2 text-center text-xs font-mono font-medium text-slate-800 focus:border-indigo-500 focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
           />
           <span className="text-xs text-slate-500 dark:text-slate-400">weeks before</span>

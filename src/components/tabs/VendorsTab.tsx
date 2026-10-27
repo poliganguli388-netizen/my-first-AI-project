@@ -1,14 +1,37 @@
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/**
+ * EventCraft AI - Vendor Management & Procurement Tab
+ * 
+ * Manages external supplier directory, quote comparisons, procurement milestone statuses,
+ * committed liabilities, and contact information.
+ */
+
 import React, { useState } from 'react';
-import { Plus, Trash2, Building2, CheckCircle2, Clock, DollarSign, Tag } from 'lucide-react';
+import { Plus, Trash2, Building2 } from 'lucide-react';
 import { VendorItem, VendorStatus } from '../../types';
 import { formatCurrency } from '../../utils/formatters';
 
 interface VendorsTabProps {
+  /** Registry of engaged and candidate vendors */
   vendors: VendorItem[];
+  /** Master currency symbol */
   currency: string;
-  onUpdateVendor: (id: string, field: keyof VendorItem, value: any) => void;
+  /** Type-safe callback invoked when updating a vendor record */
+  onUpdateVendor: <K extends keyof VendorItem>(id: string, field: K, value: VendorItem[K]) => void;
+  /** Callback to delete a vendor by identifier */
   onDeleteVendor: (id: string) => void;
-  onAddVendor: (name: string, cat: string, quote: number, status: VendorStatus, note?: string) => void;
+  /** Callback to register a new vendor entry */
+  onAddVendor: (
+    name: string,
+    cat: string,
+    quote: number,
+    status: VendorStatus,
+    note?: string
+  ) => void;
 }
 
 export const VendorsTab: React.FC<VendorsTabProps> = ({
@@ -18,30 +41,55 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({
   onDeleteVendor,
   onAddVendor
 }) => {
-  const [filter, setFilter] = useState<'All' | VendorStatus>('All');
-  const [newName, setNewName] = useState('');
-  const [newCat, setNewCat] = useState('Venue');
-  const [newQuote, setNewQuote] = useState('');
-  const [newStatus, setNewStatus] = useState<VendorStatus>('To Contact');
-  const [newNote, setNewNote] = useState('');
+  const [filterStatus, setFilterStatus] = useState<'All' | VendorStatus>('All');
+  const [newVendorName, setNewVendorName] = useState('');
+  const [newVendorCategory, setNewVendorCategory] = useState('Venue');
+  const [newVendorQuote, setNewVendorQuote] = useState('');
+  const [newVendorStatus, setNewVendorStatus] = useState<VendorStatus>('To Contact');
+  const [newVendorNote, setNewVendorNote] = useState('');
 
-  const handleAdd = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newName.trim()) return;
-    onAddVendor(newName.trim(), newCat.trim() || 'General', Number(newQuote) || 0, newStatus, newNote.trim());
-    setNewName('');
-    setNewQuote('');
-    setNewNote('');
+  /**
+   * Handles user submission of a new vendor entity.
+   */
+  const handleAddVendorSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!newVendorName.trim()) {
+      return;
+    }
+    onAddVendor(
+      newVendorName.trim(),
+      newVendorCategory.trim() || 'General',
+      Number(newVendorQuote) || 0,
+      newVendorStatus,
+      newVendorNote.trim()
+    );
+    setNewVendorName('');
+    setNewVendorQuote('');
+    setNewVendorNote('');
   };
 
-  const filtered = filter === 'All' ? vendors : vendors.filter((v) => v.status === filter);
-  const totalCommitted = vendors
-    .filter((v) => v.status === 'Booked' || v.status === 'Paid')
-    .reduce((sum, v) => sum + (v.quote || 0), 0);
-  const totalAllQuotes = vendors.reduce((sum, v) => sum + (v.quote || 0), 0);
-  const bookedCount = vendors.filter((v) => v.status === 'Booked' || v.status === 'Paid').length;
+  const filteredVendors =
+    filterStatus === 'All'
+      ? vendors
+      : vendors.filter((vendor) => vendor.status === filterStatus);
 
-  const getStatusColor = (status: VendorStatus) => {
+  const totalCommittedSpend = vendors
+    .filter((vendor) => vendor.status === 'Booked' || vendor.status === 'Paid')
+    .reduce((accumulatedTotal, vendor) => accumulatedTotal + (vendor.quote || 0), 0);
+
+  const totalQuotedValue = vendors.reduce(
+    (accumulatedTotal, vendor) => accumulatedTotal + (vendor.quote || 0),
+    0
+  );
+
+  const bookedVendorCount = vendors.filter(
+    (vendor) => vendor.status === 'Booked' || vendor.status === 'Paid'
+  ).length;
+
+  /**
+   * Resolves visual styling classes for vendor procurement status pills.
+   */
+  const getStatusBadgeClass = (status: VendorStatus): string => {
     switch (status) {
       case 'Paid':
         return 'text-emerald-700 bg-emerald-50 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800';
@@ -64,7 +112,7 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({
             Total Quotes Value
           </div>
           <div className="mt-0.5 font-mono text-base font-bold text-slate-900 dark:text-white tabular-nums">
-            {formatCurrency(totalAllQuotes, currency)}
+            {formatCurrency(totalQuotedValue, currency)}
           </div>
         </div>
 
@@ -73,7 +121,8 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({
             Committed / Booked
           </div>
           <div className="mt-0.5 font-mono text-base font-bold text-indigo-700 dark:text-indigo-300 tabular-nums">
-            {formatCurrency(totalCommitted, currency)} <span className="text-[11px] font-normal">({bookedCount} vendors)</span>
+            {formatCurrency(totalCommittedSpend, currency)}{' '}
+            <span className="text-[11px] font-normal">({bookedVendorCount} vendors)</span>
           </div>
         </div>
 
@@ -82,7 +131,10 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({
             Procurement Progress
           </div>
           <div className="mt-0.5 font-mono text-base font-bold text-slate-900 dark:text-white tabular-nums">
-            {vendors.length > 0 ? Math.round((bookedCount / vendors.length) * 100) : 0}% locked
+            {vendors.length > 0
+              ? Math.round((bookedVendorCount / vendors.length) * 100)
+              : 0}
+            % locked
           </div>
         </div>
       </div>
@@ -91,31 +143,33 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({
       <div className="flex flex-wrap items-center justify-between gap-3">
         {/* Segmented Filter Control */}
         <div className="flex items-center gap-1 rounded-xl bg-slate-100 p-1 dark:bg-slate-800">
-          {(['All', 'To Contact', 'Quoted', 'Booked', 'Paid'] as const).map((st) => (
-            <button
-              key={st}
-              onClick={() => setFilter(st)}
-              className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition-all cursor-pointer ${
-                filter === st
-                  ? 'bg-white text-slate-900 shadow-2xs dark:bg-slate-700 dark:text-white'
-                  : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
-              }`}
-            >
-              {st}
-            </button>
-          ))}
+          {(['All', 'To Contact', 'Quoted', 'Booked', 'Paid'] as const).map(
+            (statusOption) => (
+              <button
+                key={statusOption}
+                onClick={() => setFilterStatus(statusOption)}
+                className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition-all cursor-pointer ${
+                  filterStatus === statusOption
+                    ? 'bg-white text-slate-900 shadow-2xs dark:bg-slate-700 dark:text-white'
+                    : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
+                }`}
+              >
+                {statusOption}
+              </button>
+            )
+          )}
         </div>
 
         <div className="text-xs text-slate-500 dark:text-slate-400">
-          Showing <b>{filtered.length}</b> of <b>{vendors.length}</b> vendors
+          Showing <b>{filteredVendors.length}</b> of <b>{vendors.length}</b> vendors
         </div>
       </div>
 
       {/* Vendor Rows */}
       <div className="space-y-2">
-        {filtered.map((v) => (
+        {filteredVendors.map((vendor) => (
           <div
-            key={v.id}
+            key={vendor.id}
             className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-slate-200/80 bg-white p-3.5 hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-slate-700 transition-colors shadow-2xs"
           >
             <div className="flex items-start gap-3 flex-1 min-w-[220px]">
@@ -124,14 +178,16 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({
               </div>
               <div className="space-y-0.5">
                 <div className="text-sm font-bold text-slate-900 dark:text-white">
-                  {v.name}
+                  {vendor.name}
                 </div>
                 <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-                  <span className="font-semibold text-slate-700 dark:text-slate-300">{v.cat}</span>
-                  {v.note && (
+                  <span className="font-semibold text-slate-700 dark:text-slate-300">
+                    {vendor.cat}
+                  </span>
+                  {vendor.note && (
                     <>
                       <span aria-hidden="true">·</span>
-                      <span>{v.note}</span>
+                      <span>{vendor.note}</span>
                     </>
                   )}
                 </div>
@@ -141,10 +197,12 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({
             <div className="flex flex-wrap items-center gap-3 sm:justify-end">
               {/* Status Select */}
               <select
-                value={v.status}
-                onChange={(e) => onUpdateVendor(v.id, 'status', e.target.value as VendorStatus)}
-                className={`rounded-lg border px-2.5 py-1 text-xs font-semibold focus:outline-none cursor-pointer ${getStatusColor(
-                  v.status
+                value={vendor.status}
+                onChange={(event) =>
+                  onUpdateVendor(vendor.id, 'status', event.target.value as VendorStatus)
+                }
+                className={`rounded-lg border px-2.5 py-1 text-xs font-semibold focus:outline-none cursor-pointer ${getStatusBadgeClass(
+                  vendor.status
                 )}`}
               >
                 <option value="To Contact">To Contact</option>
@@ -160,14 +218,16 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({
                 </span>
                 <input
                   type="number"
-                  value={v.quote}
-                  onChange={(e) => onUpdateVendor(v.id, 'quote', Number(e.target.value) || 0)}
+                  value={vendor.quote}
+                  onChange={(event) =>
+                    onUpdateVendor(vendor.id, 'quote', Number(event.target.value) || 0)
+                  }
                   className="w-28 rounded-lg border border-slate-200 bg-slate-50 py-1 pl-6 pr-2 text-right font-mono text-xs font-semibold text-slate-800 focus:border-indigo-500 focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 tabular-nums"
                 />
               </div>
 
               <button
-                onClick={() => onDeleteVendor(v.id)}
+                onClick={() => onDeleteVendor(vendor.id)}
                 className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-rose-600 dark:hover:bg-slate-800 dark:hover:text-rose-400 transition-colors cursor-pointer"
                 title="Delete vendor"
               >
@@ -177,7 +237,7 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({
           </div>
         ))}
 
-        {filtered.length === 0 && (
+        {filteredVendors.length === 0 && (
           <div className="py-10 text-center text-sm text-slate-500 dark:text-slate-400">
             No vendors found matching this filter.
           </div>
@@ -185,18 +245,21 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({
       </div>
 
       {/* Add Vendor Form */}
-      <form onSubmit={handleAdd} className="flex flex-wrap items-center gap-2 pt-4 border-t border-dashed border-slate-200 dark:border-slate-800">
+      <form
+        onSubmit={handleAddVendorSubmit}
+        className="flex flex-wrap items-center gap-2 pt-4 border-t border-dashed border-slate-200 dark:border-slate-800"
+      >
         <input
           type="text"
-          value={newName}
-          onChange={(e) => setNewName(e.target.value)}
+          value={newVendorName}
+          onChange={(event) => setNewVendorName(event.target.value)}
           placeholder="Vendor / Agency Name"
           className="flex-1 min-w-[180px] rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs font-medium text-slate-800 focus:border-indigo-500 focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
         />
         <input
           type="text"
-          value={newCat}
-          onChange={(e) => setNewCat(e.target.value)}
+          value={newVendorCategory}
+          onChange={(event) => setNewVendorCategory(event.target.value)}
           placeholder="Category (e.g. DJ, Flowers)"
           className="w-36 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-800 focus:border-indigo-500 focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
         />
@@ -206,15 +269,15 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({
           </span>
           <input
             type="number"
-            value={newQuote}
-            onChange={(e) => setNewQuote(e.target.value)}
+            value={newVendorQuote}
+            onChange={(event) => setNewVendorQuote(event.target.value)}
             placeholder="Quote"
             className="w-28 rounded-xl border border-slate-200 bg-slate-50 py-2 pl-6 pr-2 text-xs font-medium text-slate-800 focus:border-indigo-500 focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 font-mono tabular-nums"
           />
         </div>
         <select
-          value={newStatus}
-          onChange={(e) => setNewStatus(e.target.value as VendorStatus)}
+          value={newVendorStatus}
+          onChange={(event) => setNewVendorStatus(event.target.value as VendorStatus)}
           className="rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-2 text-xs font-semibold text-slate-800 focus:border-indigo-500 focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 cursor-pointer"
         >
           <option value="To Contact">To Contact</option>
@@ -224,8 +287,8 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({
         </select>
         <input
           type="text"
-          value={newNote}
-          onChange={(e) => setNewNote(e.target.value)}
+          value={newVendorNote}
+          onChange={(event) => setNewVendorNote(event.target.value)}
           placeholder="Notes (e.g. Advance paid, tasting done)"
           className="w-44 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-800 focus:border-indigo-500 focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
         />

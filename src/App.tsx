@@ -1,3 +1,16 @@
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/**
+ * EventCraft AI - Celebration & Event Planner Master Application
+ * 
+ * Central application orchestrator managing reactive state, offline local storage
+ * synchronization, dark/light theme toggling, AI assistance integrations, export/import
+ * backup pipelines, and sub-module navigation.
+ */
+
 import React, { useState, useEffect } from 'react';
 import {
   DollarSign,
@@ -8,7 +21,21 @@ import {
   Lightbulb,
   CheckCircle2
 } from 'lucide-react';
-import { EventState, EventType, BudgetRow, TaskItem, ScheduleItem, VendorItem, GuestItem, IdeaItem, VendorStatus, RsvpStatus, DietType, IdeaTag } from './types';
+import {
+  EventState,
+  EventType,
+  BudgetRow,
+  TaskItem,
+  ScheduleItem,
+  VendorItem,
+  GuestItem,
+  IdeaItem,
+  VendorStatus,
+  RsvpStatus,
+  DietType,
+  IdeaTag,
+  ModalState
+} from './types';
 import { buildStateFromTemplate, COLORS } from './data/templates';
 import { generateId } from './utils/formatters';
 import { Navbar } from './components/Navbar';
@@ -25,50 +52,64 @@ import { AIModal } from './components/AIModal';
 import { PrintView } from './components/PrintView';
 import { TestSuiteModal } from './components/TestSuiteModal';
 
-const STORAGE_KEY = 'eventcraft_pro_state_v3';
+/* ========================================================================== */
+/* SECTION: CONSTANTS & CONFIGURATION                                         */
+/* ========================================================================== */
 
-export default function App() {
+const LOCAL_STORAGE_CACHE_KEY = 'eventcraft_pro_state_v3';
+
+/* ========================================================================== */
+/* SECTION: MAIN APPLICATION COMPONENT                                        */
+/* ========================================================================== */
+
+export default function App(): React.ReactElement {
+  // Master Event State with localStorage hydration
   const [state, setState] = useState<EventState>(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        return JSON.parse(saved);
+      const persistedStateJson = localStorage.getItem(LOCAL_STORAGE_CACHE_KEY);
+      if (persistedStateJson) {
+        return JSON.parse(persistedStateJson) as EventState;
       }
-    } catch (e) {
-      console.warn('Failed to parse saved state', e);
+    } catch (parseError) {
+      console.warn('Failed to parse cached event state from localStorage:', parseError);
     }
     return buildStateFromTemplate('wedding');
   });
 
+  // Ephemeral Feedback & AI Loading States
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [isAiLoading, setIsAiLoading] = useState(false);
-  const [aiActionName, setAiActionName] = useState('');
+  const [isAiLoading, setIsAiLoading] = useState<boolean>(false);
+  const [aiActionName, setAiActionName] = useState<string>('');
 
-  // Modal State
-  const [modalState, setModalState] = useState<{
-    isOpen: boolean;
-    title: string;
-    type: 'invite' | 'budget' | 'vendor' | 'generic';
-    data: any;
-  }>({
+  // Structured AI Intelligence Modal State
+  const [modalState, setModalState] = useState<ModalState>({
     isOpen: false,
     title: '',
     type: 'generic',
     data: null
   });
 
+  // Automated Testing & Code Quality Inspector Modal State
   const [isTestModalOpen, setIsTestModalOpen] = useState<boolean>(false);
 
-  // Save to localStorage
+  /* ======================================================================== */
+  /* SECTION: REACT EFFECTS & PERSISTENCE                                     */
+  /* ======================================================================== */
+
+  /**
+   * Automatically persists master state mutations to browser localStorage.
+   */
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    } catch (e) {
-      console.warn('Failed to save to localStorage', e);
+      localStorage.setItem(LOCAL_STORAGE_CACHE_KEY, JSON.stringify(state));
+    } catch (storageError) {
+      console.warn('Failed to commit event state to localStorage:', storageError);
     }
   }, [state]);
 
-  // Apply Dark/Light theme class to html element
+  /**
+   * Synchronizes dark/light theme class with the root HTML document element.
+   */
   useEffect(() => {
     if (state.theme === 'dark') {
       document.documentElement.classList.add('dark');
@@ -77,57 +118,101 @@ export default function App() {
     }
   }, [state.theme]);
 
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
+  /* ======================================================================== */
+  /* SECTION: TOAST NOTIFICATIONS & PREFERENCES                               */
+  /* ======================================================================== */
+
+  /**
+   * Displays an animated toast notification banner.
+   * 
+   * @param message - User-facing notification text.
+   */
+  const showToast = (message: string): void => {
+    setToastMessage(message);
     setTimeout(() => {
-      setToastMessage((curr) => (curr === msg ? null : curr));
+      setToastMessage((currentMessage) => (currentMessage === message ? null : currentMessage));
     }, 2800);
   };
 
-  // Theme Toggle
-  const toggleTheme = () => {
-    setState((prev) => ({
-      ...prev,
-      theme: prev.theme === 'dark' ? 'light' : 'dark'
+  /**
+   * Toggles the active color scheme between light and dark modes.
+   */
+  const toggleTheme = (): void => {
+    setState((previousState) => ({
+      ...previousState,
+      theme: previousState.theme === 'dark' ? 'light' : 'dark'
     }));
   };
 
-  // Currency Change
-  const handleCurrencyChange = (curr: string) => {
-    setState((prev) => ({ ...prev, currency: curr }));
-    showToast(`Currency set to ${curr}`);
+  /**
+   * Updates the primary monetary currency symbol.
+   * 
+   * @param targetCurrency - Chosen currency symbol (e.g., '₹', '$', '€', '£').
+   */
+  const handleCurrencyChange = (targetCurrency: string): void => {
+    setState((previousState) => ({
+      ...previousState,
+      currency: targetCurrency
+    }));
+    showToast(`Currency set to ${targetCurrency}`);
   };
 
-  // Export & Import
-  const handleExportJSON = () => {
-    const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(state, null, 2));
-    const downloadAnchor = document.createElement('a');
-    downloadAnchor.setAttribute('href', dataStr);
-    downloadAnchor.setAttribute('download', `${state.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_plan.json`);
-    document.body.appendChild(downloadAnchor);
-    downloadAnchor.click();
-    downloadAnchor.remove();
+  /* ======================================================================== */
+  /* SECTION: BACKUP & DATA PORTABILITY (EXPORT / IMPORT)                     */
+  /* ======================================================================== */
+
+  /**
+   * Serializes current event state into a formatted JSON backup file and triggers download.
+   */
+  const handleExportJSON = (): void => {
+    const serializedJson = JSON.stringify(state, null, 2);
+    const dataUrlPayload = 'data:text/json;charset=utf-8,' + encodeURIComponent(serializedJson);
+    const downloadAnchorElement = document.createElement('a');
+    const sanitizedFileName = `${state.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_plan.json`;
+
+    downloadAnchorElement.setAttribute('href', dataUrlPayload);
+    downloadAnchorElement.setAttribute('download', sanitizedFileName);
+    document.body.appendChild(downloadAnchorElement);
+    downloadAnchorElement.click();
+    downloadAnchorElement.remove();
+
     showToast('Plan downloaded as JSON backup');
   };
 
-  const handleImportJSON = (imported: EventState) => {
-    setState(imported);
+  /**
+   * Ingests and hydrates a valid imported EventState backup.
+   * 
+   * @param importedPlanState - Parsed JSON event plan state.
+   */
+  const handleImportJSON = (importedPlanState: EventState): void => {
+    setState(importedPlanState);
     showToast('Event plan successfully loaded!');
   };
 
-  // Template Loader
-  const handleLoadTemplate = (type: EventType) => {
-    const fresh = buildStateFromTemplate(type);
-    setState(fresh);
-    showToast(`Loaded ${type.toUpperCase()} starter template!`);
+  /**
+   * Loads a pre-built starter template archetype.
+   * 
+   * @param eventType - Selected event type template (e.g., 'wedding', 'birthday').
+   */
+  const handleLoadTemplate = (eventType: EventType): void => {
+    const initializedState = buildStateFromTemplate(eventType);
+    setState(initializedState);
+    showToast(`Loaded ${eventType.toUpperCase()} starter template!`);
   };
 
-  // AI Actions
-  const handleAutoPlan = async () => {
+  /* ======================================================================== */
+  /* SECTION: AI INTELLIGENCE & COPILOT ORCHESTRATION                         */
+  /* ======================================================================== */
+
+  /**
+   * Generates a complete end-to-end event plan using server-side Gemini intelligence.
+   */
+  const handleAutoPlan = async (): Promise<void> => {
     setIsAiLoading(true);
     setAiActionName('plan');
+
     try {
-      const res = await fetch('/api/ai/plan', {
+      const response = await fetch('/api/ai/plan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -139,69 +224,85 @@ export default function App() {
           notes: state.notes
         })
       });
-      const data = await res.json();
-      if (data.success && data.plan) {
-        const { categories, tasks, schedule, vendors, ideas } = data.plan;
 
-        const totalB = Number(state.budget) || 500000;
-        let acc = 0;
-        const newBudgetRows: BudgetRow[] = (categories || []).map((c: any, idx: number) => {
-          let p = Math.round((c.pct / 100) * totalB / 1000) * 1000;
-          if (idx === categories.length - 1) p = Math.max(0, totalB - acc);
-          acc += p;
-          return {
+      const responsePayload = await response.json();
+
+      if (responsePayload.success && responsePayload.plan) {
+        const { categories, tasks, schedule, vendors, ideas } = responsePayload.plan;
+
+        const masterBudgetAmount = Number(state.budget) || 500000;
+        let cumulativePlannedTotal = 0;
+
+        const newBudgetRows: BudgetRow[] = (categories || []).map(
+          (categoryItem: { name: string; pct: number }, categoryIndex: number) => {
+            let plannedAmount = Math.round(((categoryItem.pct / 100) * masterBudgetAmount) / 1000) * 1000;
+            if (categoryIndex === categories.length - 1) {
+              plannedAmount = Math.max(0, masterBudgetAmount - cumulativePlannedTotal);
+            }
+            cumulativePlannedTotal += plannedAmount;
+
+            return {
+              id: generateId(),
+              name: categoryItem.name,
+              planned: plannedAmount,
+              spent: 0,
+              color: COLORS[categoryIndex % COLORS.length]
+            };
+          }
+        );
+
+        const newTasks: TaskItem[] = (tasks || []).map(
+          (taskItem: { text: string; weeks?: number }) => ({
             id: generateId(),
-            name: c.name,
-            planned: p,
-            spent: 0,
-            color: COLORS[idx % COLORS.length]
-          };
-        });
+            text: taskItem.text,
+            weeks: taskItem.weeks || 2,
+            done: false
+          })
+        );
 
-        const newTasks: TaskItem[] = (tasks || []).map((t: any) => ({
-          id: generateId(),
-          text: t.text,
-          weeks: t.weeks || 2,
-          done: false
-        }));
+        const newSchedule: ScheduleItem[] = (schedule || []).map(
+          (scheduleCue: { time: string; event: string; lead?: string; location?: string }) => ({
+            id: generateId(),
+            time: scheduleCue.time,
+            event: scheduleCue.event,
+            lead: scheduleCue.lead || 'Coordinator',
+            location: scheduleCue.location || ''
+          })
+        );
 
-        const newSchedule: ScheduleItem[] = (schedule || []).map((s: any) => ({
-          id: generateId(),
-          time: s.time,
-          event: s.event,
-          lead: s.lead || 'Coordinator',
-          location: s.location || ''
-        }));
+        const newVendors: VendorItem[] = (vendors || []).map(
+          (vendorItem: { name: string; cat: string; quote?: number; status?: string; note?: string }) => ({
+            id: generateId(),
+            name: vendorItem.name,
+            cat: vendorItem.cat,
+            quote: vendorItem.quote || 0,
+            status: (vendorItem.status as VendorStatus) || 'To Contact',
+            note: vendorItem.note || ''
+          })
+        );
 
-        const newVendors: VendorItem[] = (vendors || []).map((v: any) => ({
-          id: generateId(),
-          name: v.name,
-          cat: v.cat,
-          quote: v.quote || 0,
-          status: (v.status as VendorStatus) || 'To Contact',
-          note: v.note || ''
-        }));
+        const newIdeas: IdeaItem[] = (ideas || []).map(
+          (brainstormIdea: { title: string; tag?: string; detail?: string }) => ({
+            id: generateId(),
+            title: brainstormIdea.title,
+            tag: (brainstormIdea.tag as IdeaTag) || 'Activity',
+            detail: brainstormIdea.detail || ''
+          })
+        );
 
-        const newIdeas: IdeaItem[] = (ideas || []).map((i: any) => ({
-          id: generateId(),
-          title: i.title,
-          tag: (i.tag as IdeaTag) || 'Activity',
-          detail: i.detail || ''
-        }));
-
-        setState((prev) => ({
-          ...prev,
-          budgetRows: newBudgetRows.length > 0 ? newBudgetRows : prev.budgetRows,
-          tasks: newTasks.length > 0 ? newTasks : prev.tasks,
-          schedule: newSchedule.length > 0 ? newSchedule : prev.schedule,
-          vendors: newVendors.length > 0 ? newVendors : prev.vendors,
-          ideas: newIdeas.length > 0 ? newIdeas : prev.ideas
+        setState((previousState) => ({
+          ...previousState,
+          budgetRows: newBudgetRows.length > 0 ? newBudgetRows : previousState.budgetRows,
+          tasks: newTasks.length > 0 ? newTasks : previousState.tasks,
+          schedule: newSchedule.length > 0 ? newSchedule : previousState.schedule,
+          vendors: newVendors.length > 0 ? newVendors : previousState.vendors,
+          ideas: newIdeas.length > 0 ? newIdeas : previousState.ideas
         }));
 
         showToast('✨ AI successfully generated your complete event plan!');
       }
-    } catch (err) {
-      console.error(err);
+    } catch (networkError) {
+      console.error('Failed to communicate with AI planning service:', networkError);
       showToast('Error communicating with AI service');
     } finally {
       setIsAiLoading(false);
@@ -209,11 +310,15 @@ export default function App() {
     }
   };
 
-  const handleOpenInviteModal = async () => {
+  /**
+   * Requests customized digital invitation messages formatted for WhatsApp, Email, and SMS.
+   */
+  const handleOpenInviteModal = async (): Promise<void> => {
     setIsAiLoading(true);
     setAiActionName('invite');
+
     try {
-      const res = await fetch('/api/ai/invite', {
+      const response = await fetch('/api/ai/invite', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -225,28 +330,35 @@ export default function App() {
           guests: state.guests
         })
       });
-      const data = await res.json();
-      if (data.success && data.invites) {
+
+      const responsePayload = await response.json();
+
+      if (responsePayload.success && responsePayload.invites) {
         setModalState({
           isOpen: true,
           title: '✉️ AI Event Invitation Generator',
           type: 'invite',
-          data: data.invites
+          data: responsePayload.invites
         });
       }
-    } catch (err) {
-      console.error(err);
+    } catch (networkError) {
+      console.error('Failed to communicate with AI invitation service:', networkError);
+      showToast('Error generating invitations');
     } finally {
       setIsAiLoading(false);
       setAiActionName('');
     }
   };
 
-  const handleOpenBudgetDoctor = async () => {
+  /**
+   * Dispatches current financial allocations to AI Budget Doctor for cost optimization advice.
+   */
+  const handleOpenBudgetDoctor = async (): Promise<void> => {
     setIsAiLoading(true);
     setAiActionName('budget');
+
     try {
-      const res = await fetch('/api/ai/budget-doctor', {
+      const response = await fetch('/api/ai/budget-doctor', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -257,28 +369,35 @@ export default function App() {
           budgetRows: state.budgetRows
         })
       });
-      const data = await res.json();
-      if (data.success && data.advice) {
+
+      const responsePayload = await response.json();
+
+      if (responsePayload.success && responsePayload.advice) {
         setModalState({
           isOpen: true,
           title: '💡 AI Budget Doctor & Cost Optimization',
           type: 'budget',
-          data: data.advice
+          data: responsePayload.advice
         });
       }
-    } catch (err) {
-      console.error(err);
+    } catch (networkError) {
+      console.error('Failed to communicate with AI Budget Doctor:', networkError);
+      showToast('Error consulting Budget Doctor');
     } finally {
       setIsAiLoading(false);
       setAiActionName('');
     }
   };
 
-  const handleOpenVendorChecklist = async () => {
+  /**
+   * Generates interview questionnaires and contract red flag warnings for registered vendor categories.
+   */
+  const handleOpenVendorChecklist = async (): Promise<void> => {
     setIsAiLoading(true);
     setAiActionName('vendor');
+
     try {
-      const res = await fetch('/api/ai/vendor-checklist', {
+      const response = await fetch('/api/ai/vendor-checklist', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -287,166 +406,266 @@ export default function App() {
           vendors: state.vendors
         })
       });
-      const data = await res.json();
-      if (data.success && data.checklist) {
+
+      const responsePayload = await response.json();
+
+      if (responsePayload.success && responsePayload.checklist) {
         setModalState({
           isOpen: true,
           title: '📋 AI Vendor Interview Questionnaire & Red Flags',
           type: 'vendor',
-          data: data.checklist
+          data: responsePayload.checklist
         });
       }
-    } catch (err) {
-      console.error(err);
+    } catch (networkError) {
+      console.error('Failed to communicate with AI vendor service:', networkError);
+      showToast('Error generating vendor interview checklist');
     } finally {
       setIsAiLoading(false);
       setAiActionName('');
     }
   };
 
-  // Budget Row handlers
-  const handleUpdateBudgetRow = (id: string, field: keyof BudgetRow, val: any) => {
-    setState((prev) => ({
-      ...prev,
-      budgetRows: prev.budgetRows.map((r) => (r.id === id ? { ...r, [field]: val } : r))
+  /* ======================================================================== */
+  /* SECTION: CRUD STATE HANDLERS                                             */
+  /* ======================================================================== */
+
+  /**
+   * Updates an individual field on a specific budget line item with strict type safety.
+   */
+  const handleUpdateBudgetRow = <K extends keyof BudgetRow>(
+    id: string,
+    field: K,
+    value: BudgetRow[K]
+  ): void => {
+    setState((previousState) => ({
+      ...previousState,
+      budgetRows: previousState.budgetRows.map((budgetRow) =>
+        budgetRow.id === id ? { ...budgetRow, [field]: value } : budgetRow
+      )
     }));
   };
 
-  const handleDeleteBudgetRow = (id: string) => {
-    setState((prev) => ({
-      ...prev,
-      budgetRows: prev.budgetRows.filter((r) => r.id !== id)
+  /**
+   * Removes a budget category line item by identifier.
+   */
+  const handleDeleteBudgetRow = (id: string): void => {
+    setState((previousState) => ({
+      ...previousState,
+      budgetRows: previousState.budgetRows.filter((budgetRow) => budgetRow.id !== id)
     }));
     showToast('Category deleted');
   };
 
-  const handleAddBudgetRow = (name: string, planned: number) => {
-    const newRow: BudgetRow = {
+  /**
+   * Appends a new budget category line item.
+   */
+  const handleAddBudgetRow = (name: string, planned: number): void => {
+    const newBudgetRow: BudgetRow = {
       id: generateId(),
       name,
       planned,
       spent: 0,
       color: COLORS[state.budgetRows.length % COLORS.length]
     };
-    setState((prev) => ({
-      ...prev,
-      budgetRows: [...prev.budgetRows, newRow]
+    setState((previousState) => ({
+      ...previousState,
+      budgetRows: [...previousState.budgetRows, newBudgetRow]
     }));
     showToast('Category added');
   };
 
-  // Task handlers
-  const handleToggleTask = (id: string, done: boolean) => {
-    setState((prev) => ({
-      ...prev,
-      tasks: prev.tasks.map((t) => (t.id === id ? { ...t, done } : t))
+  /**
+   * Toggles completion status for a timeline milestone task.
+   */
+  const handleToggleTask = (id: string, done: boolean): void => {
+    setState((previousState) => ({
+      ...previousState,
+      tasks: previousState.tasks.map((taskItem) =>
+        taskItem.id === id ? { ...taskItem, done } : taskItem
+      )
     }));
   };
 
-  const handleDeleteTask = (id: string) => {
-    setState((prev) => ({
-      ...prev,
-      tasks: prev.tasks.filter((t) => t.id !== id)
+  /**
+   * Removes a milestone task by identifier.
+   */
+  const handleDeleteTask = (id: string): void => {
+    setState((previousState) => ({
+      ...previousState,
+      tasks: previousState.tasks.filter((taskItem) => taskItem.id !== id)
     }));
     showToast('Milestone deleted');
   };
 
-  const handleAddTask = (text: string, weeks: number) => {
-    setState((prev) => ({
-      ...prev,
-      tasks: [...prev.tasks, { id: generateId(), text, weeks, done: false }]
+  /**
+   * Appends a new chronological milestone task.
+   */
+  const handleAddTask = (text: string, weeks: number): void => {
+    setState((previousState) => ({
+      ...previousState,
+      tasks: [...previousState.tasks, { id: generateId(), text, weeks, done: false }]
     }));
     showToast('Milestone added');
   };
 
-  // Schedule handlers
-  const handleDeleteSchedule = (id: string) => {
-    setState((prev) => ({
-      ...prev,
-      schedule: prev.schedule.filter((s) => s.id !== id)
+  /**
+   * Removes a schedule cue by identifier.
+   */
+  const handleDeleteSchedule = (id: string): void => {
+    setState((previousState) => ({
+      ...previousState,
+      schedule: previousState.schedule.filter((scheduleCue) => scheduleCue.id !== id)
     }));
     showToast('Cue removed');
   };
 
-  const handleAddSchedule = (time: string, event: string, lead: string, location?: string) => {
-    setState((prev) => ({
-      ...prev,
-      schedule: [...prev.schedule, { id: generateId(), time, event, lead, location }]
+  /**
+   * Appends a new run-of-show schedule cue.
+   */
+  const handleAddSchedule = (
+    time: string,
+    event: string,
+    lead: string,
+    location?: string
+  ): void => {
+    setState((previousState) => ({
+      ...previousState,
+      schedule: [...previousState.schedule, { id: generateId(), time, event, lead, location }]
     }));
     showToast('Schedule cue added');
   };
 
-  // Vendor handlers
-  const handleUpdateVendor = (id: string, field: keyof VendorItem, val: any) => {
-    setState((prev) => ({
-      ...prev,
-      vendors: prev.vendors.map((v) => (v.id === id ? { ...v, [field]: val } : v))
+  /**
+   * Updates an individual field on a vendor record with strict type safety.
+   */
+  const handleUpdateVendor = <K extends keyof VendorItem>(
+    id: string,
+    field: K,
+    value: VendorItem[K]
+  ): void => {
+    setState((previousState) => ({
+      ...previousState,
+      vendors: previousState.vendors.map((vendorItem) =>
+        vendorItem.id === id ? { ...vendorItem, [field]: value } : vendorItem
+      )
     }));
   };
 
-  const handleDeleteVendor = (id: string) => {
-    setState((prev) => ({
-      ...prev,
-      vendors: prev.vendors.filter((v) => v.id !== id)
+  /**
+   * Removes a vendor contract entry by identifier.
+   */
+  const handleDeleteVendor = (id: string): void => {
+    setState((previousState) => ({
+      ...previousState,
+      vendors: previousState.vendors.filter((vendorItem) => vendorItem.id !== id)
     }));
     showToast('Vendor removed');
   };
 
-  const handleAddVendor = (name: string, cat: string, quote: number, status: VendorStatus, note?: string) => {
-    setState((prev) => ({
-      ...prev,
-      vendors: [...prev.vendors, { id: generateId(), name, cat, quote, status, note }]
+  /**
+   * Appends a new vendor entry to the registry.
+   */
+  const handleAddVendor = (
+    name: string,
+    cat: string,
+    quote: number,
+    status: VendorStatus,
+    note?: string
+  ): void => {
+    setState((previousState) => ({
+      ...previousState,
+      vendors: [...previousState.vendors, { id: generateId(), name, cat, quote, status, note }]
     }));
     showToast('Vendor added');
   };
 
-  // Guest handlers
-  const handleUpdateGuest = (id: string, field: keyof GuestItem, val: any) => {
-    setState((prev) => ({
-      ...prev,
-      guestList: prev.guestList.map((g) => (g.id === id ? { ...g, [field]: val } : g))
+  /**
+   * Updates an individual field on a guest record with strict type safety.
+   */
+  const handleUpdateGuest = <K extends keyof GuestItem>(
+    id: string,
+    field: K,
+    value: GuestItem[K]
+  ): void => {
+    setState((previousState) => ({
+      ...previousState,
+      guestList: previousState.guestList.map((guestItem) =>
+        guestItem.id === id ? { ...guestItem, [field]: value } : guestItem
+      )
     }));
   };
 
-  const handleDeleteGuest = (id: string) => {
-    setState((prev) => ({
-      ...prev,
-      guestList: prev.guestList.filter((g) => g.id !== id)
+  /**
+   * Removes a guest entry from the attendee directory.
+   */
+  const handleDeleteGuest = (id: string): void => {
+    setState((previousState) => ({
+      ...previousState,
+      guestList: previousState.guestList.filter((guestItem) => guestItem.id !== id)
     }));
     showToast('Guest removed');
   };
 
-  const handleAddGuest = (name: string, count: number, rsvp: RsvpStatus, diet: DietType, notes?: string, table?: string) => {
-    setState((prev) => ({
-      ...prev,
-      guestList: [...prev.guestList, { id: generateId(), name, count, rsvp, diet, notes, table }]
+  /**
+   * Appends a new guest party to the guest list.
+   */
+  const handleAddGuest = (
+    name: string,
+    count: number,
+    rsvp: RsvpStatus,
+    diet: DietType,
+    notes?: string,
+    table?: string
+  ): void => {
+    setState((previousState) => ({
+      ...previousState,
+      guestList: [
+        ...previousState.guestList,
+        { id: generateId(), name, count, rsvp, diet, notes, table }
+      ]
     }));
     showToast('Guest added');
   };
 
-  // Idea handlers
-  const handleDeleteIdea = (id: string) => {
-    setState((prev) => ({
-      ...prev,
-      ideas: prev.ideas.filter((i) => i.id !== id)
+  /**
+   * Removes a creative concept by identifier.
+   */
+  const handleDeleteIdea = (id: string): void => {
+    setState((previousState) => ({
+      ...previousState,
+      ideas: previousState.ideas.filter((brainstormIdea) => brainstormIdea.id !== id)
     }));
     showToast('Idea removed');
   };
 
-  const handleAddIdea = (title: string, tag: IdeaTag, detail: string) => {
-    setState((prev) => ({
-      ...prev,
-      ideas: [...prev.ideas, { id: generateId(), title, tag, detail }]
+  /**
+   * Appends a new brainstorm concept.
+   */
+  const handleAddIdea = (title: string, tag: IdeaTag, detail: string): void => {
+    setState((previousState) => ({
+      ...previousState,
+      ideas: [...previousState.ideas, { id: generateId(), title, tag, detail }]
     }));
     showToast('Concept saved');
   };
 
-  const completedTasksCount = state.tasks.filter((t) => t.done).length;
-  const confirmedGuestsCount = state.guestList.filter((g) => g.rsvp === 'Confirmed').reduce((a, b) => a + (b.count || 1), 0);
+  /* ======================================================================== */
+  /* SECTION: DERIVED METRICS FOR TAB COUNTERS                                */
+  /* ======================================================================== */
+
+  const completedTasksCount = state.tasks.filter((taskItem) => taskItem.done).length;
+  const confirmedGuestsCount = state.guestList
+    .filter((guestItem) => guestItem.rsvp === 'Confirmed')
+    .reduce((accumulatedCount, guestItem) => accumulatedCount + (guestItem.count || 1), 0);
+
+  /* ======================================================================== */
+  /* SECTION: COMPONENT PRESENTATION (RENDER)                                 */
+  /* ======================================================================== */
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 transition-colors">
-      {/* Top Navbar */}
+      {/* Top Navigation Bar */}
       <Navbar
         theme={state.theme}
         onToggleTheme={toggleTheme}
@@ -456,37 +675,53 @@ export default function App() {
         onExportJSON={handleExportJSON}
         onImportJSON={handleImportJSON}
         activeTab={state.activeTab}
-        onSelectTab={(tab) => setState((p) => ({ ...p, activeTab: tab }))}
+        onSelectTab={(selectedTab) =>
+          setState((previousState) => ({ ...previousState, activeTab: selectedTab }))
+        }
         onOpenTestSuite={() => setIsTestModalOpen(true)}
       />
 
-      {/* Hero Summary */}
+      {/* Hero Event Summary Banner */}
       <HeroSummary
         name={state.name}
-        onChangeName={(val) => setState((p) => ({ ...p, name: val }))}
+        onChangeName={(updatedName) =>
+          setState((previousState) => ({ ...previousState, name: updatedName }))
+        }
         date={state.date}
         guests={state.guests}
         city={state.city}
         type={state.type}
       />
 
-      {/* Main Container */}
+      {/* Primary Workspace Container */}
       <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 space-y-6">
-        {/* Event Setup & Parameters */}
+        {/* Event Setup & Parameters Card */}
         <EventSetupCard
           type={state.type}
-          onChangeType={(t) => setState((p) => ({ ...p, type: t }))}
+          onChangeType={(selectedType) =>
+            setState((previousState) => ({ ...previousState, type: selectedType }))
+          }
           date={state.date}
-          onChangeDate={(d) => setState((p) => ({ ...p, date: d }))}
+          onChangeDate={(selectedDate) =>
+            setState((previousState) => ({ ...previousState, date: selectedDate }))
+          }
           guests={state.guests}
-          onChangeGuests={(g) => setState((p) => ({ ...p, guests: g }))}
+          onChangeGuests={(guestCount) =>
+            setState((previousState) => ({ ...previousState, guests: guestCount }))
+          }
           budget={state.budget}
-          onChangeBudget={(b) => setState((p) => ({ ...p, budget: b }))}
+          onChangeBudget={(budgetAmount) =>
+            setState((previousState) => ({ ...previousState, budget: budgetAmount }))
+          }
           currency={state.currency}
           city={state.city}
-          onChangeCity={(c) => setState((p) => ({ ...p, city: c }))}
+          onChangeCity={(cityName) =>
+            setState((previousState) => ({ ...previousState, city: cityName }))
+          }
           notes={state.notes}
-          onChangeNotes={(n) => setState((p) => ({ ...p, notes: n }))}
+          onChangeNotes={(notesContent) =>
+            setState((previousState) => ({ ...previousState, notes: notesContent }))
+          }
           onLoadTemplate={handleLoadTemplate}
           onAutoPlan={handleAutoPlan}
           onOpenInviteModal={handleOpenInviteModal}
@@ -496,7 +731,7 @@ export default function App() {
           aiActionName={aiActionName}
         />
 
-        {/* Financial & Allocation Health */}
+        {/* Financial & Predictive Allocation Health Card */}
         <FinancialHealthCard
           budget={state.budget}
           currency={state.currency}
@@ -504,12 +739,14 @@ export default function App() {
           budgetRows={state.budgetRows}
         />
 
-        {/* Tab Modules Container */}
+        {/* Tabbed Planning Modules Section */}
         <section className="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-sm dark:border-slate-800/90 dark:bg-slate-900/95 transition-all">
-          {/* Tabs Bar */}
+          {/* Module Selector Tab Navigation */}
           <div className="flex items-center gap-1.5 overflow-x-auto pb-3 mb-6 border-b border-slate-100 dark:border-slate-800 scrollbar-none">
             <button
-              onClick={() => setState((p) => ({ ...p, activeTab: 'budget' }))}
+              onClick={() =>
+                setState((previousState) => ({ ...previousState, activeTab: 'budget' }))
+              }
               className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
                 state.activeTab === 'budget'
                   ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-500/20'
@@ -518,17 +755,21 @@ export default function App() {
             >
               <DollarSign className="h-4 w-4" />
               <span>Budget Breakdown</span>
-              <span className={`rounded-full px-2 py-0.5 text-[10px] font-mono tabular-nums ${
-                state.activeTab === 'budget'
-                  ? 'bg-indigo-800/50 text-indigo-100'
-                  : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
-              }`}>
+              <span
+                className={`rounded-full px-2 py-0.5 text-[10px] font-mono tabular-nums ${
+                  state.activeTab === 'budget'
+                    ? 'bg-indigo-800/50 text-indigo-100'
+                    : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
+                }`}
+              >
                 {state.budgetRows.length}
               </span>
             </button>
 
             <button
-              onClick={() => setState((p) => ({ ...p, activeTab: 'timeline' }))}
+              onClick={() =>
+                setState((previousState) => ({ ...previousState, activeTab: 'timeline' }))
+              }
               className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
                 state.activeTab === 'timeline'
                   ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-500/20'
@@ -537,17 +778,21 @@ export default function App() {
             >
               <Calendar className="h-4 w-4" />
               <span>Timeline & Milestones</span>
-              <span className={`rounded-full px-2 py-0.5 text-[10px] font-mono tabular-nums ${
-                state.activeTab === 'timeline'
-                  ? 'bg-indigo-800/50 text-indigo-100'
-                  : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
-              }`}>
+              <span
+                className={`rounded-full px-2 py-0.5 text-[10px] font-mono tabular-nums ${
+                  state.activeTab === 'timeline'
+                    ? 'bg-indigo-800/50 text-indigo-100'
+                    : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
+                }`}
+              >
                 {completedTasksCount}/{state.tasks.length}
               </span>
             </button>
 
             <button
-              onClick={() => setState((p) => ({ ...p, activeTab: 'schedule' }))}
+              onClick={() =>
+                setState((previousState) => ({ ...previousState, activeTab: 'schedule' }))
+              }
               className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
                 state.activeTab === 'schedule'
                   ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-500/20'
@@ -556,17 +801,21 @@ export default function App() {
             >
               <Clock className="h-4 w-4" />
               <span>Day-of Run Sheet</span>
-              <span className={`rounded-full px-2 py-0.5 text-[10px] font-mono tabular-nums ${
-                state.activeTab === 'schedule'
-                  ? 'bg-indigo-800/50 text-indigo-100'
-                  : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
-              }`}>
+              <span
+                className={`rounded-full px-2 py-0.5 text-[10px] font-mono tabular-nums ${
+                  state.activeTab === 'schedule'
+                    ? 'bg-indigo-800/50 text-indigo-100'
+                    : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
+                }`}
+              >
                 {state.schedule.length}
               </span>
             </button>
 
             <button
-              onClick={() => setState((p) => ({ ...p, activeTab: 'vendors' }))}
+              onClick={() =>
+                setState((previousState) => ({ ...previousState, activeTab: 'vendors' }))
+              }
               className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
                 state.activeTab === 'vendors'
                   ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-500/20'
@@ -575,17 +824,21 @@ export default function App() {
             >
               <Briefcase className="h-4 w-4" />
               <span>Vendors & Quotes</span>
-              <span className={`rounded-full px-2 py-0.5 text-[10px] font-mono tabular-nums ${
-                state.activeTab === 'vendors'
-                  ? 'bg-indigo-800/50 text-indigo-100'
-                  : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
-              }`}>
+              <span
+                className={`rounded-full px-2 py-0.5 text-[10px] font-mono tabular-nums ${
+                  state.activeTab === 'vendors'
+                    ? 'bg-indigo-800/50 text-indigo-100'
+                    : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
+                }`}
+              >
                 {state.vendors.length}
               </span>
             </button>
 
             <button
-              onClick={() => setState((p) => ({ ...p, activeTab: 'guests' }))}
+              onClick={() =>
+                setState((previousState) => ({ ...previousState, activeTab: 'guests' }))
+              }
               className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
                 state.activeTab === 'guests'
                   ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-500/20'
@@ -594,17 +847,21 @@ export default function App() {
             >
               <Users className="h-4 w-4" />
               <span>Guests & RSVP</span>
-              <span className={`rounded-full px-2 py-0.5 text-[10px] font-mono tabular-nums ${
-                state.activeTab === 'guests'
-                  ? 'bg-indigo-800/50 text-indigo-100'
-                  : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
-              }`}>
+              <span
+                className={`rounded-full px-2 py-0.5 text-[10px] font-mono tabular-nums ${
+                  state.activeTab === 'guests'
+                    ? 'bg-indigo-800/50 text-indigo-100'
+                    : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
+                }`}
+              >
                 {confirmedGuestsCount}
               </span>
             </button>
 
             <button
-              onClick={() => setState((p) => ({ ...p, activeTab: 'ideas' }))}
+              onClick={() =>
+                setState((previousState) => ({ ...previousState, activeTab: 'ideas' }))
+              }
               className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
                 state.activeTab === 'ideas'
                   ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-500/20'
@@ -613,17 +870,19 @@ export default function App() {
             >
               <Lightbulb className="h-4 w-4" />
               <span>Creative Concepts</span>
-              <span className={`rounded-full px-2 py-0.5 text-[10px] font-mono tabular-nums ${
-                state.activeTab === 'ideas'
-                  ? 'bg-indigo-800/50 text-indigo-100'
-                  : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
-              }`}>
+              <span
+                className={`rounded-full px-2 py-0.5 text-[10px] font-mono tabular-nums ${
+                  state.activeTab === 'ideas'
+                    ? 'bg-indigo-800/50 text-indigo-100'
+                    : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
+                }`}
+              >
                 {state.ideas.length}
               </span>
             </button>
           </div>
 
-          {/* Active Tab Content */}
+          {/* Active Tab Component Render */}
           <div>
             {state.activeTab === 'budget' && (
               <BudgetTab
@@ -683,13 +942,13 @@ export default function App() {
         </section>
       </main>
 
-      {/* Print View for PDF generation */}
+      {/* Print View for Clean PDF Generation */}
       <PrintView state={state} />
 
-      {/* AI Modal */}
+      {/* AI Intelligence Modal */}
       <AIModal
         isOpen={modalState.isOpen}
-        onClose={() => setModalState((prev) => ({ ...prev, isOpen: false }))}
+        onClose={() => setModalState((previousState) => ({ ...previousState, isOpen: false }))}
         title={modalState.title}
         type={modalState.type}
         data={modalState.data}
@@ -702,7 +961,7 @@ export default function App() {
         onClose={() => setIsTestModalOpen(false)}
       />
 
-      {/* Floating Toast Notification */}
+      {/* Floating Animated Toast Notification */}
       {toastMessage && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2.5 text-xs font-semibold text-white shadow-xl dark:bg-white dark:text-slate-900 animate-in fade-in slide-in-from-bottom-2 duration-150">
           <CheckCircle2 className="h-4 w-4 text-emerald-400 dark:text-emerald-600" />

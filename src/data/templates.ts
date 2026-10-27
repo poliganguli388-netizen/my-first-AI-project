@@ -1,4 +1,18 @@
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/**
+ * EventCraft AI - Event Archetype Templates & Starter Configurations
+ * 
+ * Provides production-ready templates for weddings, birthdays, corporate offsites,
+ * anniversaries, community galas, and parties with domain-curated budget allocations,
+ * run-of-show cues, and milestone task lists.
+ */
+
 import { EventState, EventType } from '../types';
+import { generateId } from '../utils/formatters';
 
 export const STARTERS: Record<EventType, {
   title: string;
@@ -333,62 +347,78 @@ export const COLORS = [
   '#64748B'  // Slate
 ];
 
-export function buildStateFromTemplate(type: EventType, customTitle?: string, theme: 'light' | 'dark' = 'light'): EventState {
-  const tpl = STARTERS[type] || STARTERS.wedding;
-  const future = new Date();
-  future.setDate(future.getDate() + 45);
+/**
+ * Instantiates a fully populated EventState object from an archetype template.
+ * 
+ * @param type - Archetype classification (e.g., 'wedding', 'birthday').
+ * @param customTitle - Optional user-defined event title overriding the template default.
+ * @param theme - Visual presentation theme ('light' | 'dark').
+ * @returns Fully initialized EventState entity with unique identifiers.
+ */
+export function buildStateFromTemplate(
+  type: EventType,
+  customTitle?: string,
+  theme: 'light' | 'dark' = 'light'
+): EventState {
+  const template = STARTERS[type] || STARTERS.wedding;
+  const futureTargetDate = new Date();
+  futureTargetDate.setDate(futureTargetDate.getDate() + 45);
 
-  const totalB = tpl.budget;
-  let allocated = 0;
-  const budgetRows = tpl.categories.map((c, i) => {
-    let amt = Math.round((c.pct / 100) * totalB / 1000) * 1000;
-    if (i === tpl.categories.length - 1) amt = Math.max(0, totalB - allocated);
-    allocated += amt;
+  const masterBudgetTotal = template.budget;
+  let cumulativeAllocated = 0;
+
+  const budgetRows = template.categories.map((category, categoryIndex) => {
+    let targetAmount = Math.round(((category.pct / 100) * masterBudgetTotal) / 1000) * 1000;
+    if (categoryIndex === template.categories.length - 1) {
+      targetAmount = Math.max(0, masterBudgetTotal - cumulativeAllocated);
+    }
+    cumulativeAllocated += targetAmount;
+
     return {
-      id: Math.random().toString(36).substring(2, 9),
-      name: c.name,
-      planned: amt,
-      spent: Math.round(amt * 0.2),
-      color: COLORS[i % COLORS.length]
+      id: generateId(),
+      name: category.name,
+      planned: targetAmount,
+      spent: Math.round(targetAmount * 0.2),
+      color: COLORS[categoryIndex % COLORS.length]
     };
   });
 
   return {
     theme,
-    name: customTitle || tpl.title,
+    name: customTitle || template.title,
     type,
-    date: future.toISOString().split('T')[0],
-    guests: tpl.guests,
-    budget: tpl.budget,
+    date: futureTargetDate.toISOString().split('T')[0],
+    guests: template.guests,
+    budget: template.budget,
     currency: '₹',
-    city: tpl.city,
-    notes: tpl.notes,
+    city: template.city,
+    notes: template.notes,
     activeTab: 'budget',
     budgetRows,
-    tasks: tpl.tasks.map(t => ({
-      id: Math.random().toString(36).substring(2, 9),
-      text: t.text,
-      weeks: t.weeks,
+    tasks: template.tasks.map((taskItem) => ({
+      id: generateId(),
+      text: taskItem.text,
+      weeks: taskItem.weeks,
       done: false
     })),
-    schedule: tpl.schedule.map(s => ({
-      id: Math.random().toString(36).substring(2, 9),
-      time: s.time,
-      event: s.event,
-      lead: s.lead,
-      location: s.location
+    schedule: template.schedule.map((scheduleCue) => ({
+      id: generateId(),
+      time: scheduleCue.time,
+      event: scheduleCue.event,
+      lead: scheduleCue.lead,
+      location: scheduleCue.location
     })),
-    vendors: tpl.vendors.map(v => ({
-      id: Math.random().toString(36).substring(2, 9),
-      ...v
+    vendors: template.vendors.map((vendorRecord) => ({
+      id: generateId(),
+      ...vendorRecord
     })),
-    guestList: tpl.guestsList.map(g => ({
-      id: Math.random().toString(36).substring(2, 9),
-      ...g
+    guestList: template.guestsList.map((guestRecord) => ({
+      id: generateId(),
+      ...guestRecord
     })),
-    ideas: tpl.ideas.map(i => ({
-      id: Math.random().toString(36).substring(2, 9),
-      ...i
+    ideas: template.ideas.map((brainstormIdea) => ({
+      id: generateId(),
+      ...brainstormIdea
     }))
   };
 }

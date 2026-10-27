@@ -1,5 +1,25 @@
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/**
+ * EventCraft AI - Predictive Spending Projection & Overrun Radar Panel
+ * 
+ * Provides interactive scenario simulations (Baseline, Trend-Weighted, Stress Test),
+ * multi-layered runway progress bars, per-guest spending velocity radars, category drift
+ * drilldowns, and mitigation levers.
+ */
+
 import React, { useState, useMemo } from 'react';
-import { TrendingUp, AlertTriangle, ShieldCheck, Zap, ArrowUpRight, ArrowDownRight, Compass, Sparkles } from 'lucide-react';
+import {
+  TrendingUp,
+  ShieldCheck,
+  Zap,
+  ArrowUpRight,
+  ArrowDownRight,
+  Compass
+} from 'lucide-react';
 import { BudgetRow } from '../types';
 import { formatCurrency } from '../utils/formatters';
 import {
@@ -10,9 +30,13 @@ import {
 } from '../utils/financialAnalytics';
 
 interface SpendingProjectionPanelProps {
+  /** Master budget ceiling */
   budget: number;
+  /** Active currency symbol */
   currency: string;
+  /** Array of category budget rows */
   budgetRows: BudgetRow[];
+  /** Expected guest count */
   guests: number;
 }
 
@@ -27,23 +51,23 @@ export const SpendingProjectionPanel: React.FC<SpendingProjectionPanelProps> = (
   const [model, setModel] = useState<ProjectionModel>('trend');
   const [renegotiateLever, setRenegotiateLever] = useState<boolean>(false);
 
-  const totalB = Number.isFinite(Number(budget)) ? Math.max(0, Number(budget)) : 0;
+  const masterBudgetCeiling = Number.isFinite(Number(budget)) ? Math.max(0, Number(budget)) : 0;
 
   // Memoized statistical spending forecast from pure analytics engine
   const analysis: FinancialAnalyticsResult = useMemo(() => {
-    return computeFinancialAnalytics(totalB, budgetRows, model, renegotiateLever);
-  }, [budgetRows, totalB, model, renegotiateLever]);
+    return computeFinancialAnalytics(masterBudgetCeiling, budgetRows, model, renegotiateLever);
+  }, [budgetRows, masterBudgetCeiling, model, renegotiateLever]);
 
   // Per-guest velocity calculation
-  const { projectedPerGuest, targetPerGuest, difference: perGuestDiff } = useMemo(() => {
-    return computePerGuestMetrics(analysis.finalProjected, totalB, guests);
-  }, [analysis.finalProjected, totalB, guests]);
+  const { projectedPerGuest, difference: perGuestDiff } = useMemo(() => {
+    return computePerGuestMetrics(analysis.finalProjected, masterBudgetCeiling, guests);
+  }, [analysis.finalProjected, masterBudgetCeiling, guests]);
 
   // Visual Gauge scaling percentages (clamped 0 to 100)
-  const maxScale = Math.max(totalB, analysis.finalProjected, analysis.totalSpent, 1) * 1.1;
-  const spentPct = Math.min(100, (analysis.totalSpent / maxScale) * 100);
-  const projectedPct = Math.min(100, (analysis.finalProjected / maxScale) * 100);
-  const budgetMarkerPct = Math.min(100, (totalB / maxScale) * 100);
+  const maxScale = Math.max(masterBudgetCeiling, analysis.finalProjected, analysis.totalSpent, 1) * 1.1;
+  const spentPercentage = Math.min(100, (analysis.totalSpent / maxScale) * 100);
+  const projectedPercentage = Math.min(100, (analysis.finalProjected / maxScale) * 100);
+  const budgetMarkerPercentage = Math.min(100, (masterBudgetCeiling / maxScale) * 100);
 
   return (
     <div className="mt-5 pt-5 border-t border-slate-100 dark:border-slate-800/80">
@@ -113,7 +137,7 @@ export const SpendingProjectionPanel: React.FC<SpendingProjectionPanelProps> = (
             </span>
           </div>
           <div className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
-            Target: <b className="font-mono text-slate-700 dark:text-slate-300">{formatCurrency(totalB, currency)}</b>
+            Target: <b className="font-mono text-slate-700 dark:text-slate-300">{formatCurrency(masterBudgetCeiling, currency)}</b>
           </div>
         </div>
 
@@ -147,8 +171,8 @@ export const SpendingProjectionPanel: React.FC<SpendingProjectionPanelProps> = (
           </div>
           <div className="mt-1 text-[11px] font-medium text-slate-600 dark:text-slate-300">
             {analysis.isProjectedOver
-              ? `${Math.abs(Math.round((analysis.projectedVariance / (totalB || 1)) * 100))}% above budget ceiling`
-              : `${Math.round((analysis.projectedVariance / (totalB || 1)) * 100)}% preserved in liquid reserve`}
+              ? `${Math.abs(Math.round((analysis.projectedVariance / (masterBudgetCeiling || 1)) * 100))}% above budget ceiling`
+              : `${Math.round((analysis.projectedVariance / (masterBudgetCeiling || 1)) * 100)}% preserved in liquid reserve`}
           </div>
         </div>
 
@@ -194,7 +218,7 @@ export const SpendingProjectionPanel: React.FC<SpendingProjectionPanelProps> = (
             </span>
             <span className="inline-flex items-center gap-1.5">
               <span className="h-3 w-0.5 bg-amber-500" />
-              <span>Target Budget ({formatCurrency(totalB, currency)})</span>
+              <span>Target Budget ({formatCurrency(masterBudgetCeiling, currency)})</span>
             </span>
           </div>
         </div>
@@ -203,14 +227,14 @@ export const SpendingProjectionPanel: React.FC<SpendingProjectionPanelProps> = (
         <div className="relative h-5 w-full rounded-md bg-slate-200 dark:bg-slate-700/80 overflow-hidden">
           {/* Target Budget Reference Line */}
           <div
-            style={{ left: `${budgetMarkerPct}%` }}
+            style={{ left: `${budgetMarkerPercentage}%` }}
             className="absolute top-0 bottom-0 z-20 w-1 bg-amber-500 shadow-sm"
-            title={`Target Budget Limit: ${formatCurrency(totalB, currency)}`}
+            title={`Target Budget Limit: ${formatCurrency(masterBudgetCeiling, currency)}`}
           />
 
           {/* Projected Spend Layer */}
           <div
-            style={{ width: `${projectedPct}%` }}
+            style={{ width: `${projectedPercentage}%` }}
             className={`h-full transition-all duration-300 ${
               analysis.isProjectedOver
                 ? 'bg-rose-500/35 dark:bg-rose-500/40'
@@ -220,7 +244,7 @@ export const SpendingProjectionPanel: React.FC<SpendingProjectionPanelProps> = (
 
           {/* Paid Out Layer (Solid) */}
           <div
-            style={{ width: `${spentPct}%` }}
+            style={{ width: `${spentPercentage}%` }}
             className="absolute top-0 left-0 bottom-0 bg-slate-800 dark:bg-slate-200 transition-all duration-300"
           />
         </div>
@@ -253,18 +277,18 @@ export const SpendingProjectionPanel: React.FC<SpendingProjectionPanelProps> = (
           </div>
 
           <div className="space-y-2">
-            {analysis.topDrifting.map((cat) => {
-              const isOver = cat.diff > 0;
-              const hasSpend = cat.spent > 0;
+            {analysis.topDrifting.map((categoryDrift) => {
+              const isCategoryOverBudget = categoryDrift.diff > 0;
+              const hasSpendActivity = categoryDrift.spent > 0;
               return (
-                <div key={cat.id} className="flex items-center justify-between gap-3 text-xs">
+                <div key={categoryDrift.id} className="flex items-center justify-between gap-3 text-xs">
                   <div className="flex items-center gap-2 min-w-[140px] truncate">
                     <span
-                      style={{ backgroundColor: cat.color || '#6366F1' }}
+                      style={{ backgroundColor: categoryDrift.color || '#6366F1' }}
                       className="h-2.5 w-2.5 rounded-full shrink-0"
                     />
                     <span className="font-semibold text-slate-800 dark:text-slate-200 truncate">
-                      {cat.name}
+                      {categoryDrift.name}
                     </span>
                   </div>
 
@@ -272,8 +296,13 @@ export const SpendingProjectionPanel: React.FC<SpendingProjectionPanelProps> = (
                   <div className="flex-1 max-w-[160px] h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden hidden sm:block">
                     <div
                       style={{
-                        width: `${Math.min(100, cat.planned > 0 ? (cat.spent / cat.planned) * 100 : 0)}%`,
-                        backgroundColor: isOver ? '#F43F5E' : cat.color || '#6366F1'
+                        width: `${Math.min(
+                          100,
+                          categoryDrift.planned > 0
+                            ? (categoryDrift.spent / categoryDrift.planned) * 100
+                            : 0
+                        )}%`,
+                        backgroundColor: isCategoryOverBudget ? '#F43F5E' : categoryDrift.color || '#6366F1'
                       }}
                       className="h-full rounded-full transition-all"
                     />
@@ -281,18 +310,22 @@ export const SpendingProjectionPanel: React.FC<SpendingProjectionPanelProps> = (
 
                   <div className="flex items-center gap-2 shrink-0 font-mono text-right tabular-nums">
                     <span className="text-slate-500 dark:text-slate-400">
-                      {formatCurrency(cat.spent, currency)} / {formatCurrency(cat.planned, currency)}
+                      {formatCurrency(categoryDrift.spent, currency)} / {formatCurrency(categoryDrift.planned, currency)}
                     </span>
                     <span
                       className={`text-[11px] font-bold min-w-[65px] ${
-                        isOver
+                        isCategoryOverBudget
                           ? 'text-rose-600 dark:text-rose-400'
-                          : hasSpend
+                          : hasSpendActivity
                           ? 'text-emerald-600 dark:text-emerald-400'
                           : 'text-slate-400'
                       }`}
                     >
-                      {isOver ? `+${formatCurrency(cat.diff, currency)}` : hasSpend ? 'On Track' : 'Pending'}
+                      {isCategoryOverBudget
+                        ? `+${formatCurrency(categoryDrift.diff, currency)}`
+                        : hasSpendActivity
+                        ? 'On Track'
+                        : 'Pending'}
                     </span>
                   </div>
                 </div>
@@ -317,7 +350,7 @@ export const SpendingProjectionPanel: React.FC<SpendingProjectionPanelProps> = (
                 <input
                   type="checkbox"
                   checked={renegotiateLever}
-                  onChange={(e) => setRenegotiateLever(e.target.checked)}
+                  onChange={(event) => setRenegotiateLever(event.target.checked)}
                   className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-800 cursor-pointer"
                 />
                 <span>Simulate -8% Vendor Procurement Discount</span>

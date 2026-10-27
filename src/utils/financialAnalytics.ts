@@ -3,38 +3,78 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+/**
+ * EventCraft AI - Predictive Financial Analytics & Scenario Modeling Engine
+ * 
+ * Provides statistical algorithms, burn-rate velocity calculations, and predictive
+ * econometric forecasting models (Strict Baseline, Trend-Weighted, and Stress-Testing)
+ * to estimate budget variances, cost overruns, and potential savings.
+ */
+
 import { BudgetRow } from '../types';
 
+/** Simulation model scenario options for financial forecasting */
 export type ProjectionModel = 'strict' | 'trend' | 'stress';
 
+/**
+ * Detailed telemetry and variance metric for an individual budget line item.
+ */
 export interface CategoryDrift {
+  /** Identifier of the line item */
   id: string;
+  /** Human-readable category designation */
   name: string;
+  /** Accent color identifier for visual graphing */
   color?: string;
+  /** Baseline allocated amount */
   planned: number;
+  /** Actual disbursed amount */
   spent: number;
+  /** Absolute difference (spent - planned); positive values signify overages */
   diff: number;
+  /** Velocity ratio (spent / planned) */
   ratio: number;
+  /** True if any actual spending has been recorded */
   isStarted: boolean;
 }
 
+/**
+ * Comprehensive analytical breakdown of current financial posture and predictive outlook.
+ */
 export interface FinancialAnalyticsResult {
+  /** Sum of planned allocations across all line items */
   totalPlanned: number;
+  /** Sum of realized expenditures to date */
   totalSpent: number;
+  /** Number of categories that have initiated financial activity */
   startedCategoriesCount: number;
+  /** Number of categories currently exceeding their planned ceiling */
   overageCategoriesCount: number;
+  /** Empirical burn-rate drift factor observed across active categories */
   activeDriftMultiplier: number;
+  /** Uncommitted planned allocations for categories with zero current spend */
   unspentPlanned: number;
+  /** Strict baseline projection (committed spend + unspent planned allocations) */
   strictProjected: number;
+  /** Trend-weighted forecast extrapolating current category spending velocities */
   trendProjected: number;
+  /** High-stress scenario incorporating risk buffers (+12%) for rush premiums */
   stressProjected: number;
+  /** Active forecast selected according to the active projection model */
   finalProjected: number;
-  projectedVariance: number; // positive = savings, negative = overrun
+  /** Expected monetary variance relative to the total budget (positive = savings, negative = overrun) */
+  projectedVariance: number;
+  /** Boolean flag indicating whether the projection breaches the event budget ceiling */
   isProjectedOver: boolean;
-  savingsOrOverageAmount: number; // absolute value
+  /** Absolute variance amount in primary currency units */
+  savingsOrOverageAmount: number;
+  /** Percentage ratio of variance relative to total budget */
   variancePercentage: number;
+  /** Priority ranked categories contributing most significantly to budget drift */
   topDrifting: CategoryDrift[];
+  /** Complete list of category drift analyses */
   categoryDrifts: CategoryDrift[];
+  /** Overall financial health assessment score */
   riskLevel: 'low' | 'moderate' | 'high' | 'critical';
 }
 
@@ -42,11 +82,14 @@ export interface FinancialAnalyticsResult {
  * Computes predictive spending projection and risk analytics based on planned allocations,
  * actual historical disbursements, and scenario modeling parameters.
  *
- * @param totalBudget Overall event budget ceiling
- * @param budgetRows Breakdown of category line items
- * @param model Active projection model ('strict' | 'trend' | 'stress')
- * @param renegotiateLever Whether procurement negotiation savings discount (8%) is active
- * @returns FinancialAnalyticsResult Comprehensive analytical breakdown
+ * @param totalBudget - Overall event budget ceiling in primary currency.
+ * @param budgetRows - Array of category budget items.
+ * @param model - Active forecast model ('strict' | 'trend' | 'stress').
+ * @param renegotiateLever - Whether the 8% procurement negotiation discount is applied.
+ * @returns Comprehensive analytical financial health breakdown.
+ * 
+ * @example
+ * computeFinancialAnalytics(1000000, rows, 'trend', false);
  */
 export function computeFinancialAnalytics(
   totalBudget: number,
@@ -106,22 +149,22 @@ export function computeFinancialAnalytics(
 
   // Uncommitted / pending planned allocations
   const unspentPlanned = categoryDrifts
-    .filter((c) => !c.isStarted)
-    .reduce((acc, c) => acc + c.planned, 0);
+    .filter((category) => !category.isStarted)
+    .reduce((accumulatedTotal, category) => accumulatedTotal + category.planned, 0);
 
   // Model 1: Strict / Baseline - Committed spent + remaining planned
-  const strictProjected = categoryDrifts.reduce((acc, c) => {
-    return acc + Math.max(c.spent, c.planned);
+  const strictProjected = categoryDrifts.reduce((accumulatedTotal, category) => {
+    return accumulatedTotal + Math.max(category.spent, category.planned);
   }, 0);
 
   // Model 2: Trend-Weighted - Active follow current ratio, pending follow active drift factor
   const trendMultiplier = activeDriftMultiplier > 1 ? activeDriftMultiplier : 1.04;
-  const trendProjected = categoryDrifts.reduce((acc, c) => {
-    if (c.isStarted) {
-      return acc + Math.max(c.spent, c.planned * (c.ratio > 1 ? c.ratio : 1.0));
+  const trendProjected = categoryDrifts.reduce((accumulatedTotal, category) => {
+    if (category.isStarted) {
+      return accumulatedTotal + Math.max(category.spent, category.planned * (category.ratio > 1 ? category.ratio : 1.0));
     }
-    const adjusted = c.planned * (renegotiateLever ? 0.92 : trendMultiplier);
-    return acc + adjusted;
+    const adjustedPlanned = category.planned * (renegotiateLever ? 0.92 : trendMultiplier);
+    return accumulatedTotal + adjustedPlanned;
   }, 0);
 
   // Model 3: Stress-Test - Adds +12% surcharge contingency for overtime, last-minute rushes
@@ -130,8 +173,12 @@ export function computeFinancialAnalytics(
     : strictProjected * 1.12;
 
   let finalProjected = trendProjected;
-  if (model === 'strict') finalProjected = strictProjected;
-  if (model === 'stress') finalProjected = stressProjected;
+  if (model === 'strict') {
+    finalProjected = strictProjected;
+  }
+  if (model === 'stress') {
+    finalProjected = stressProjected;
+  }
 
   const roundedFinal = Math.round(finalProjected);
   const projectedVariance = Math.round(safeBudget - roundedFinal);
@@ -143,7 +190,7 @@ export function computeFinancialAnalytics(
 
   // Top drifting categories sorted by highest overage or variance
   const topDrifting = [...categoryDrifts]
-    .sort((a, b) => b.diff - a.diff)
+    .sort((firstCategory, secondCategory) => secondCategory.diff - firstCategory.diff)
     .slice(0, 4);
 
   // Determine risk level
@@ -182,27 +229,44 @@ export function computeFinancialAnalytics(
 }
 
 /**
- * Calculates per-guest spend velocity and target deviation.
+ * Computes attendee per-capita spending velocity and target variance metrics.
+ * 
+ * @param projectedTotal - Projected total event expenditure.
+ * @param targetBudget - Master target budget ceiling.
+ * @param guestCount - Total confirmed or estimated guest count.
+ * @returns Per-guest baseline and projected velocity metrics.
  */
 export function computePerGuestMetrics(
-  finalProjected: number,
-  totalBudget: number,
+  projectedTotal: number,
+  targetBudget: number,
   guestCount: number
 ): {
   projectedPerGuest: number;
   targetPerGuest: number;
   difference: number;
+  budgetPerGuest: number;
+  perGuestVariance: number;
 } {
-  const safeGuests = Number.isFinite(guestCount) && guestCount > 0 ? Math.floor(guestCount) : 0;
-  if (safeGuests === 0) {
-    return { projectedPerGuest: 0, targetPerGuest: 0, difference: 0 };
+  const safeGuestCount = guestCount > 0 ? guestCount : 0;
+  if (safeGuestCount === 0) {
+    return {
+      projectedPerGuest: 0,
+      targetPerGuest: 0,
+      difference: 0,
+      budgetPerGuest: 0,
+      perGuestVariance: 0,
+    };
   }
 
-  const projectedPerGuest = Math.round(finalProjected / safeGuests);
-  const targetPerGuest = Math.round(totalBudget / safeGuests);
+  const projectedPerGuest = Math.round(projectedTotal / safeGuestCount);
+  const targetPerGuest = Math.round(targetBudget / safeGuestCount);
+  const difference = projectedPerGuest - targetPerGuest;
+
   return {
     projectedPerGuest,
     targetPerGuest,
-    difference: projectedPerGuest - targetPerGuest,
+    difference,
+    budgetPerGuest: targetPerGuest,
+    perGuestVariance: difference,
   };
 }

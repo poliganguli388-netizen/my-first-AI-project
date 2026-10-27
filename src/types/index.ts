@@ -1,81 +1,259 @@
-export type EventType = 'wedding' | 'birthday' | 'anniversary' | 'corporate' | 'community' | 'party' | 'other';
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
+/**
+ * EventCraft AI - Core Domain Types & State Contracts
+ * 
+ * This module defines the canonical TypeScript data models, domain schemas,
+ * and component state contracts utilized throughout the event management platform.
+ */
+
+/** Supported event archetype classifications */
+export type EventType =
+  | 'wedding'
+  | 'birthday'
+  | 'anniversary'
+  | 'corporate'
+  | 'community'
+  | 'party'
+  | 'other';
+
+/**
+ * Represents a discrete category row within the event's master budget breakdown.
+ */
 export interface BudgetRow {
+  /** Unique alphanumeric identifier */
   id: string;
+  /** Human-readable category label (e.g., 'Catering & Beverages') */
   name: string;
+  /** Allocated expenditure target in primary currency */
   planned: number;
+  /** Realized cumulative expenditure to date */
   spent: number;
+  /** Optional hex or theme color code for visual data visualization */
   color?: string;
+  /** Contextual notes, contract stipulations, or memo */
   notes?: string;
 }
 
+/**
+ * Represents a chronological milestone or operational task in the countdown timeline.
+ */
 export interface TaskItem {
+  /** Unique milestone identifier */
   id: string;
+  /** Descriptive action statement (e.g., 'Confirm caterer taste test') */
   text: string;
+  /** Lead-time target expressed in weeks prior to the event date */
   weeks: number;
+  /** Completion status flag */
   done: boolean;
+  /** Optional functional category tag (e.g., 'Logistics', 'Procurement') */
   category?: string;
 }
 
+/**
+ * Represents a granular run-of-show schedule cue for day-of event execution.
+ */
 export interface ScheduleItem {
+  /** Unique run-sheet identifier */
   id: string;
+  /** Time specification string (e.g., '09:30 AM') */
   time: string;
+  /** Description of the agenda item or programmed ceremony */
   event: string;
+  /** Primary individual or coordinator responsible for execution */
   lead: string;
+  /** Specific location or room designation within the venue */
   location?: string;
 }
 
+/** Vendor procurement and engagement stages */
 export type VendorStatus = 'To Contact' | 'Quoted' | 'Booked' | 'Paid';
 
+/**
+ * Represents an external vendor, supplier, or professional service contract.
+ */
 export interface VendorItem {
+  /** Unique vendor identifier */
   id: string;
+  /** Company, agency, or individual supplier name */
   name: string;
+  /** Service category (e.g., 'Venue', 'Catering', 'Photography') */
   cat: string;
+  /** Commercial quotation or contracted engagement fee */
   quote: number;
+  /** Current procurement and payment milestone */
   status: VendorStatus;
+  /** Terms, payment schedule, or deliverable notes */
   note?: string;
+  /** Primary contact telephone number */
   phone?: string;
+  /** Official business correspondence email */
   email?: string;
 }
 
+/** Guest RSVP confirmation statuses */
 export type RsvpStatus = 'Confirmed' | 'Pending' | 'Declined';
-export type DietType = 'Veg' | 'Non-Veg' | 'Jain' | 'Vegan' | 'Halal' | 'Gluten-Free' | 'Any';
 
+/** Dietary preference classifications for catering reconciliation */
+export type DietType =
+  | 'Veg'
+  | 'Non-Veg'
+  | 'Jain'
+  | 'Vegan'
+  | 'Halal'
+  | 'Gluten-Free'
+  | 'Any';
+
+/**
+ * Represents an invited attendee or party record in the guest directory.
+ */
 export interface GuestItem {
+  /** Unique guest identifier */
   id: string;
+  /** Guest party name or principal attendee */
   name: string;
+  /** Total number of seats allocated for this party */
   count: number;
+  /** RSVP response state */
   rsvp: RsvpStatus;
+  /** Primary dietary preference requirement */
   diet: DietType;
+  /** Dietary notes, accessibility requirements, or special seating requests */
   notes?: string;
+  /** Designated dining table or seating zone */
   table?: string;
+  /** Guest contact information (phone number or email address) */
   contact?: string;
 }
 
-export type IdeaTag = 'Decor' | 'Food' | 'Activity' | 'Gift' | 'Music' | 'Tech' | 'Theme';
+/** Creative brainstorm categorization tags */
+export type IdeaTag =
+  | 'Decor'
+  | 'Food'
+  | 'Activity'
+  | 'Gift'
+  | 'Music'
+  | 'Tech'
+  | 'Theme';
 
+/**
+ * Represents a creative inspiration, thematic concept, or decorative suggestion.
+ */
 export interface IdeaItem {
+  /** Unique concept identifier */
   id: string;
+  /** Concise headline for the idea */
   title: string;
+  /** Functional theme tag */
   tag: IdeaTag;
+  /** Detailed design notes or implementation guidance */
   detail: string;
 }
 
+/**
+ * Multi-format copy outputs produced by the AI invitation generator.
+ */
+export interface InviteModalData {
+  /** Casual, emoji-formatted message crafted for WhatsApp sharing */
+  whatsapp: string;
+  /** Structured formal invitation text suitable for email delivery */
+  email: string;
+  /** Concise high-impact notification for SMS or quick text dispatch */
+  sms: string;
+}
+
+/**
+ * Strategic cost-optimization recommendations generated by the AI Budget Doctor.
+ */
+export interface BudgetDoctorModalData {
+  /** Executive financial assessment and health diagnosis */
+  healthAssessment: string;
+  /** Priority tactical recommendations to reduce expense */
+  topSavingsTips: string[];
+  /** High-leverage negotiation tactics for key vendor contracts */
+  negotiationLevers: string[];
+  /** Hidden surcharges and venue fees to beware of */
+  hiddenCostsToWatch?: string[];
+  /** Reserve buffer rebalancing recommendations */
+  rebalancingRecommendations?: string;
+}
+
+/**
+ * Questionnaire category grouping for vendor contract evaluations.
+ */
+export interface VendorCategoryChecklist {
+  category: string;
+  questions: string[];
+  contractRedFlags?: string[];
+}
+
+/**
+ * Due-diligence questions and risk flags generated for vendor evaluations.
+ */
+export interface VendorChecklistModalData {
+  /** Category-segmented questionnaire groups */
+  categories: VendorCategoryChecklist[];
+}
+
+/**
+ * Discriminated union capturing the current state of interactive AI intelligence modals.
+ */
+export type ModalData =
+  | InviteModalData
+  | BudgetDoctorModalData
+  | VendorChecklistModalData
+  | Record<string, unknown>
+  | string
+  | null;
+
+/**
+ * Modal dialog state container.
+ */
+export interface ModalState {
+  isOpen: boolean;
+  title: string;
+  type: 'invite' | 'budget' | 'vendor' | 'generic';
+  data: ModalData;
+}
+
+/**
+ * Comprehensive top-level root state container for the EventCraft application.
+ */
 export interface EventState {
+  /** Visual presentation theme */
   theme: 'light' | 'dark';
+  /** Primary event name or headline */
   name: string;
+  /** Event archetype classification */
   type: EventType;
+  /** Target execution date formatted as ISO string (YYYY-MM-DD) */
   date: string;
+  /** Anticipated total attendee headcount */
   guests: number;
+  /** Overall budgetary expenditure ceiling */
   budget: number;
+  /** Active financial currency symbol (e.g., '₹', '$', '€', '£') */
   currency: string;
+  /** Geographical host city or locality */
   city: string;
+  /** Overall narrative notes, vision statement, or host instructions */
   notes: string;
+  /** Currently selected functional tab navigation panel */
   activeTab: 'budget' | 'timeline' | 'schedule' | 'vendors' | 'guests' | 'ideas';
+  /** Detailed category budget breakdown line items */
   budgetRows: BudgetRow[];
+  /** Chronological planning milestones */
   tasks: TaskItem[];
+  /** Granular day-of run-of-show schedule entries */
   schedule: ScheduleItem[];
+  /** Supplier and professional vendor registry */
   vendors: VendorItem[];
+  /** Comprehensive guest directory and RSVP registry */
   guestList: GuestItem[];
+  /** Creative thematic brainstorm collection */
   ideas: IdeaItem[];
 }
